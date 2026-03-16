@@ -1,0 +1,55 @@
+/* =========================
+   CARRITO
+   ========================= */
+
+.cart-float{
+
+position:fixed;
+bottom:20px;
+right:20px;
+
+background:#1f7a3d;
+color:white;
+
+padding:15px 20px;
+
+border-radius:30px;
+
+cursor:pointer;
+
+}
+
+.cart-modal{
+
+display:none;
+
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+
+background:rgba(0,0,0,0.6);
+
+justify-content:center;
+align-items:center;
+
+}
+
+.cart-modal.active{
+
+display:flex;
+
+}
+
+.cart-content{
+
+background:white;
+
+padding:30px;
+
+border-radius:15px;
+
+width:400px;
+
+}
