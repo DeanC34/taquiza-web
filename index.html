@@ -15,32 +15,107 @@
 <div class="container">
 
 <div class="header">
-<img src="images/logo.jpg" width="400">
+<img src="src/images/logo.jpg" width="400">
 <h1>Taquiza La Rana</h1>
 <p>Menú Digital - ¡Ordena Fácil!</p>
 </div>
 
 <div class="menu-container">
-
+<!-- =========================
+SECCION MENÚ
+========================= -->
 <div class="category">
-<h2 class="category-title">MENÚ</h2>
-
+<h2 class="category-title">🍽️ PLATILLOS</h2>
 <div class="products">
 
+<!-- PRODUCTO 1: chamorro -->
 <div class="product-card">
-
 <div class="product-image">
-<img src="images/chamorro.jpg">
+<img src="src/images/CHAMORRO.jpg">
 </div>
-
-<div class="product-name">CHAMORRO</div>
+<div class="product-name">Chamorro</div>
 <div class="product-price">$500</div>
-
 <button class="add-btn"
 onclick="addToCart('CHAMORRO',500)">
 Agregar
 </button>
+</div>
 
+<!-- PRODUCTO 2: Camaronesnatural -->
+<div class="product-card">
+<div class="product-image">
+<img src="src/images/CAMARONES AL NATURAL.jpg">
+</div>
+<div class="product-name">Camarones al natural</div>
+<div class="product-price">$200</div>
+<button class="add-btn"
+onclick="addToCart('Camarones al natural',200)">
+Agregar
+</button>
+</div>
+
+<!-- PRODUCTO 3: Camaronesaguachile -->
+<div class="product-card">
+<div class="product-image">
+<img src="src/images/CAMARONES EN AGUACHILE.jpg">
+</div>
+<div class="product-name">Camarones en aguachile</div>
+<div class="product-price">$200</div>
+<button class="add-btn"
+onclick="addToCart('Camarones al natural',200)">
+Agregar
+</button>
+</div>
+
+</div>
+</div>
+
+<!-- =========================
+SECCION BEBIDAS
+========================= -->
+
+<div class="category">
+<h2 class="category-title">🥤 BEBIDAS</h2>
+<div class="products">
+
+<!-- LIMONADA -->
+<div class="product-card">
+<div class="product-image">
+<img src="src/images/limonada.jpg">
+</div>
+<div class="product-name">JARRA DE LIMONADA</div>
+<div class="product-price">$100</div>
+<button class="add-btn"
+onclick="addToCart('JARRA DE LIMONADA',100)">
+Agregar
+</button>
+</div>
+
+<!-- LITRO PREPARADO -->
+<div class="product-card">
+<div class="product-image">
+<img src="src/images/preparado.jpg">
+</div>
+<div class="product-name">LITRO DE PREPARADO</div>
+<div class="product-price">$160</div>
+<button class="add-btn"
+onclick="addToCart('LITRO DE PREPARADO',160)">
+Agregar
+</button>
+</div>
+
+
+<!-- TASCALATE -->
+<div class="product-card">
+<div class="product-image">
+<img src="src/images/tascalate.jpg">
+</div>
+<div class="product-name">JARRA DE TASCALATE</div>
+<div class="product-price">$120</div>
+<button class="add-btn"
+onclick="addToCart('JARRA DE TASCALATE',120)">
+Agregar
+</button>
 </div>
 
 </div>
@@ -53,7 +128,7 @@ Agregar
 
 <!-- Botón flotante del carrito -->
 <div class="cart-float" onclick="toggleCart()">
-🛒 Mi Pedido <span id="cartCount">0</span>
+🛒 Mi Pedido <span class="cart-badge" id="cartCount">0</span>
 </div>
 
 <!-- Modal del carrito -->
@@ -61,14 +136,19 @@ Agregar
 
 <div class="cart-content">
 
-<h2>Mi Pedido</h2>
+<div class="cart-header">
+<h2>🛒 Mi Pedido</h2>
+<button class="close-btn" onclick="toggleCart()">×</button>
+</div>
 
 <div id="cartItems"></div>
 
-<h3 id="cartTotal">Total: $0</h3>
+<div class="cart-total" id="cartTotal">
+Total: $0
+</div>
 
-<button onclick="sendToWhatsApp()">
-Ordenar por WhatsApp
+<button class="whatsapp-btn" onclick="sendToWhatsApp()">
+📱 Ordenar por WhatsApp
 </button>
 
 </div>

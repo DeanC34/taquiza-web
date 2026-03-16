@@ -46,6 +46,17 @@ cartCount.textContent = totalItems;
 let total = 0;
 let html = "";
 
+if(cart.length === 0){
+
+cartItems.innerHTML =
+'<div class="empty-cart">🛒<br><br>Tu carrito está vacío</div>';
+
+cartTotal.textContent = "Total: $0";
+
+return;
+
+}
+
 cart.forEach((item,index)=>{
 
 const subtotal = item.price * item.quantity;
@@ -54,13 +65,14 @@ total += subtotal;
 html += `
 <div class="cart-item">
 
+<div class="cart-item-info">
 <h4>${item.name}</h4>
+<p>Cantidad: ${item.quantity} x $${item.price}</p>
+<div class="cart-item-price">$${subtotal}</div>
+</div>
 
-<p>Cantidad: ${item.quantity}</p>
-
-<p>$${subtotal}</p>
-
-<button onclick="removeFromCart(${index})">
+<button class="remove-btn"
+onclick="removeFromCart(${index})">
 Eliminar
 </button>
 
