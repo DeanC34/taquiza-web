@@ -1,159 +1,203 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Menú Digital - Taquiza La Rana</title>
+    <title>Menú Digital - Taquiza La Rana</title>
 
-<link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    </head>
 
-</head>
+    <body>
 
-<body>
+    <div class="container">
 
-<div class="container">
+    <div class="header">
+    <img src="src/images/LOGO.jpg" width="logo">
+    <h1>Taquiza La Rana</h1>
+    <p>Menú Digital - ¡Ordena Fácil!</p>
+    <!-- LOGIN GOOGLE -->
+    <div class="user-section">
+    <div id="g_id_onload"
+    data-client_id="TU_CLIENT_ID_GOOGLE"
+    data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin"
+    data-type="standard"
+    data-size="large"
+    data-theme="outline"
+    data-text="sign_in_with"
+    data-shape="rectangular">
+    </div>
+    <div id="userInfo"></div>
+    </div>
 
-<div class="header">
-<img src="src/images/LOGO.jpg" width="400">
-<h1>Taquiza La Rana</h1>
-<p>Menú Digital - ¡Ordena Fácil!</p>
-</div>
+    </div>
 
-<div class="menu-container">
-<!-- =========================
-SECCION MENÚ
-========================= -->
-<div class="category">
-<h2 class="category-title">🍽️ PLATILLOS</h2>
-<div class="products">
+    <div class="search-container">
+    <input
+    type="text"
+    id="searchInput"
+    placeholder="Buscar platillos..."
+    onkeyup="searchProducts()">
+    </div>
 
-<!-- PRODUCTO 1: chamorro -->
-<div class="product-card">
-<div class="product-image">
-<img src="src/images/CHAMORRO.jpg">
-</div>
-<div class="product-name">Chamorro</div>
-<div class="product-price">$500</div>
-<button class="add-btn"
-onclick="addToCart('CHAMORRO',500)">
-Agregar
-</button>
-</div>
+    <div class="menu-container">
+    <div class="category">
+    <h2 class="category-title">⭐ Recomendados para ti</h2>
+    <div class="products" id="recommendedProducts">
+    </div>
+    </div>
 
-<!-- PRODUCTO 2: Camaronesnatural -->
-<div class="product-card">
-<div class="product-image">
-<img src="src/images/CAMARONES AL NATURAL.jpg">
-</div>
-<div class="product-name">Camarones al natural</div>
-<div class="product-price">$200</div>
-<button class="add-btn"
-onclick="addToCart('Camarones al natural',200)">
-Agregar
-</button>
-</div>
+    <!-- =========================
+    SECCION MENÚ
+    ========================= -->
+    <div class="category">
+    <h2 class="category-title">🍽️ PLATILLOS</h2>
+    <div class="products">
 
-<!-- PRODUCTO 3: Camaronesaguachile -->
-<div class="product-card">
-<div class="product-image">
-<img src="src/images/CAMARONES EN AGUACHILE.jpg">
-</div>
-<div class="product-name">Camarones en aguachile</div>
-<div class="product-price">$200</div>
-<button class="add-btn"
-onclick="addToCart('Camarones al natural',200)">
-Agregar
-</button>
-</div>
+    <!-- PRODUCTO 1: chamorro -->
+    <div class="product-card">
+    <div class="product-image">
+    <img src="src/images/CHAMORRO.jpg">
+    </div>
+    <div class="product-name">Chamorro</div>
+    <div class="product-price">$500</div>
+    <button class="add-btn"
+    onclick="addToCart('CHAMORRO',500)">
+    Agregar
+    </button>
+    </div>
 
-</div>
-</div>
+    <!-- PRODUCTO 2: Camaronesnatural -->
+    <div class="product-card">
+    <div class="product-image">
+    <img src="src/images/CAMARONES AL NATURAL.jpg">
+    </div>
+    <div class="product-name">Camarones al natural</div>
+    <div class="product-price">$200</div>
+    <button class="add-btn"
+    onclick="addToCart('Camarones al natural',200)">
+    Agregar
+    </button>
+    </div>
 
-<!-- =========================
-SECCION BEBIDAS
-========================= -->
+    <!-- PRODUCTO 3: Camaronesaguachile -->
+    <div class="product-card">
+    <div class="product-image">
+    <img src="src/images/CAMARONES EN AGUACHILE.jpg">
+    </div>
+    <div class="product-name">Camarones en aguachile</div>
+    <div class="product-price">$200</div>
+    <button class="add-btn"
+    onclick="addToCart('Camarones en aguachile',200)">
+    Agregar
+    </button>
+    </div>
 
-<div class="category">
-<h2 class="category-title">🥤 BEBIDAS</h2>
-<div class="products">
+    </div>
+    </div>
 
-<!-- LIMONADA -->
-<div class="product-card">
-<div class="product-image">
-<img src="src/images/limonada.jpg">
-</div>
-<div class="product-name">JARRA DE LIMONADA</div>
-<div class="product-price">$100</div>
-<button class="add-btn"
-onclick="addToCart('JARRA DE LIMONADA',100)">
-Agregar
-</button>
-</div>
+    <!-- =========================
+    SECCION BEBIDAS
+    ========================= -->
 
-<!-- LITRO PREPARADO -->
-<div class="product-card">
-<div class="product-image">
-<img src="src/images/preparado.jpg">
-</div>
-<div class="product-name">LITRO DE PREPARADO</div>
-<div class="product-price">$160</div>
-<button class="add-btn"
-onclick="addToCart('LITRO DE PREPARADO',160)">
-Agregar
-</button>
-</div>
+    <div class="category">
+    <h2 class="category-title">🥤 BEBIDAS</h2>
+    <div class="products">
+
+    <!-- LIMONADA -->
+    <div class="product-card">
+    <div class="product-image">
+    <img src="src/images/limonada.jpg">
+    </div>
+    <div class="product-name">JARRA DE LIMONADA</div>
+    <div class="product-price">$100</div>
+    <button class="add-btn"
+    onclick="addToCart('JARRA DE LIMONADA',100)">
+    Agregar
+    </button>
+    </div>
+
+    <!-- LITRO PREPARADO -->
+    <div class="product-card">
+    <div class="product-image">
+    <img src="src/images/preparado.jpg">
+    </div>
+    <div class="product-name">LITRO DE PREPARADO</div>
+    <div class="product-price">$160</div>
+    <button class="add-btn"
+    onclick="addToCart('LITRO DE PREPARADO',160)">
+    Agregar
+    </button>
+    </div>
 
 
-<!-- TASCALATE -->
-<div class="product-card">
-<div class="product-image">
-<img src="src/images/tascalate.jpg">
-</div>
-<div class="product-name">JARRA DE TASCALATE</div>
-<div class="product-price">$120</div>
-<button class="add-btn"
-onclick="addToCart('JARRA DE TASCALATE',120)">
-Agregar
-</button>
-</div>
+    <!-- TASCALATE -->
+    <div class="product-card">
+    <div class="product-image">
+    <img src="src/images/tascalate.jpg">
+    </div>
+    <div class="product-name">JARRA DE TASCALATE</div>
+    <div class="product-price">$120</div>
+    <button class="add-btn"
+    onclick="addToCart('JARRA DE TASCALATE',120)">
+    Agregar
+    </button>
+    </div>
 
-</div>
-</div>
+    </div>
+    </div>
 
-</div>
-</div>
+    <div class="category">
+    <h2 class="category-title">🔥 Más populares</h2>
+    <div class="products">
+    <div class="product-card">
+    <div class="product-name">Chamorro</div>
+    <p>El más pedido del mes</p>
+    </div>
+    <div class="product-card">
+    <div class="product-name">Camarones en aguachile</div>
+    <p>Favorito de los clientes</p>
+    </div>
+    </div>
+    </div>
 
-<script src="js/cart.js"></script>
+    </div>
+    </div>
 
-<!-- Botón flotante del carrito -->
-<div class="cart-float" onclick="toggleCart()">
-🛒 Mi Pedido <span class="cart-badge" id="cartCount">0</span>
-</div>
+    <script src="js/cart.js"></script>
 
-<!-- Modal del carrito -->
-<div class="cart-modal" id="cartModal">
+    <!-- Botón flotante del carrito -->
+    <div class="cart-float" onclick="toggleCart()">
+    🛒 Mi Pedido <span class="cart-badge" id="cartCount">0</span>
+    </div>
 
-<div class="cart-content">
+    <!-- Modal del carrito -->
+    <div class="cart-modal" id="cartModal">
 
-<div class="cart-header">
-<h2>🛒 Mi Pedido</h2>
-<button class="close-btn" onclick="toggleCart()">×</button>
-</div>
+    <div class="cart-content">
 
-<div id="cartItems"></div>
+    <div class="cart-header">
+    <h2>🛒 Mi Pedido</h2>
+    <button class="close-btn" onclick="toggleCart()">×</button>
+    </div>
 
-<div class="cart-total" id="cartTotal">
-Total: $0
-</div>
+    <div id="cartItems"></div>
 
-<button class="whatsapp-btn" onclick="sendToWhatsApp()">
-📱 Ordenar por WhatsApp
-</button>
+    <div class="cart-total" id="cartTotal">
+    Total: $0
+    </div>
 
-</div>
+    <button class="whatsapp-btn" onclick="sendToWhatsApp()">
+    📱 Ordenar por WhatsApp
+    </button>
 
-</div>
+    </div>
 
-</body>
-</html>
+    </div>
+
+    </body>
+    </html>

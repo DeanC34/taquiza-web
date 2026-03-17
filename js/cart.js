@@ -197,3 +197,78 @@ let name = prompt("Ingresa tu nombre");
 localStorage.setItem("customerName",name);
 
 }
+
+// ================================
+// LOGIN GOOGLE (CRM)
+// ================================
+
+function handleCredentialResponse(response){
+
+const data = parseJwt(response.credential);
+
+localStorage.setItem("customerName", data.name);
+localStorage.setItem("customerEmail", data.email);
+
+document.getElementById("userInfo").innerHTML =
+"👤 " + data.name;
+
+}
+
+function parseJwt (token) {
+var base64Url = token.split('.')[1];
+var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+}).join(''));
+
+return JSON.parse(jsonPayload);
+}
+
+// ================================
+// BUSQUEDA DE PRODUCTOS
+// ================================
+
+function searchProducts(){
+
+let input = document.getElementById("searchInput").value.toLowerCase();
+
+let products = document.querySelectorAll(".product-card");
+
+products.forEach(product=>{
+
+let name = product.querySelector(".product-name").innerText.toLowerCase();
+
+if(name.includes(input)){
+product.style.display="block";
+}else{
+product.style.display="none";
+}
+
+});
+
+}
+
+// ================================
+// MOSTRAR RECOMENDADOS
+// ================================
+
+function showRecommended(){
+
+let history = JSON.parse(localStorage.getItem("customerData"));
+
+if(!history || history.length === 0){
+return;
+}
+
+let mostOrdered = history.reduce((a,b)=>
+history.filter(v=>v===a).length >=
+history.filter(v=>v===b).length ? a:b
+);
+
+document.getElementById("recommendedProducts").innerHTML =
+`<div class="product-card">
+<div class="product-name">${mostOrdered}</div>
+<p>Basado en tus pedidos anteriores</p>
+</div>`;
+
+}
