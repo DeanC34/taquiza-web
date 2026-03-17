@@ -14,9 +14,18 @@ BODY
 
 body{
 font-family:Arial, sans-serif;
-background:linear-gradient(135deg,#267d46 0%,#328c4f 100%);
 min-height:100vh;
 padding:20px;
+
+/* Imagen + capa verde */
+background:
+linear-gradient(rgba(38,125,70,0.45), rgba(38,125,70,0.45)),
+url("../src/images/negociofondo.jpg");
+
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+background-attachment:fixed;
 }
 
 /* =========================
