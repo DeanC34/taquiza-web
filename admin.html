@@ -7,7 +7,9 @@
     <link rel="stylesheet" href="css/styles.css">
     
     <style>
-        /* Estilos específicos para el panel de administración */
+        /* =======================================
+           ESTILOS GENERALES Y FORMULARIOS
+           ======================================= */
         .admin-form-container {
             background: white;
             padding: 30px;
@@ -63,6 +65,165 @@
              background: #666;
              margin-bottom: 20px;
         }
+
+        /* =======================================
+           ESTILOS DE MENÚS DESPLEGABLES (ACORDEÓN)
+           ======================================= */
+        details {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        summary {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            outline: none;
+            list-style: none;
+            padding-bottom: 10px;
+            border-bottom: 2px solid transparent; /* Línea invisible por defecto */
+            transition: border-color 0.3s ease, color 0.3s ease;
+        }
+        
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        /* Animación y franja roja/naranja al abrir */
+        details[open] summary {
+            border-bottom: 2px solid #f5576c;
+            color: #f5576c;
+            margin-bottom: 15px;
+        }
+
+        details[open] .details-content {
+            animation: slideDown 0.4s ease-out forwards;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =======================================
+           ESTILOS DE LA LISTA DE INVENTARIO
+           ======================================= */
+        .inventory-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 10px;
+            border-bottom: 1px solid #eee;
+            gap: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .inventory-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #eee;
+            border: 1px solid #ddd;
+        }
+
+        .inventory-details {
+            flex-grow: 1;
+        }
+
+        .inventory-details h4 { margin: 0; color: #333; font-size: 1.1em; }
+        .inventory-details p { margin: 4px 0 0 0; color: #666; font-size: 0.9em; font-weight: bold;}
+
+        /* Botones de acción (Editar y Eliminar) */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .btn-action {
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85em;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.05);
+            filter: brightness(0.9);
+        }
+
+        .btn-edit { background: #f0ad4e; color: #333; } /* Amarillo/Naranja */
+        .btn-delete { background: #b63c3c; }
+
+        /* =======================================
+           MODAL DE ACTUALIZACIÓN (EDITAR)
+           ======================================= */
+        .edit-modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .edit-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .edit-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .edit-modal.active .edit-content {
+            transform: translateY(0);
+        }
+
+        .close-edit-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .btn-update {
+            background: #f0ad4e;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -81,45 +242,93 @@
         </div>
 
         <div class="admin-form-container">
-            <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #f5576c; padding-bottom: 10px;">
-                ➕ Agregar Nuevo Platillo
+
+            <details open> <summary>📋 Ver, Editar y Eliminar Platillos 🔽</summary>
+                <div class="details-content">
+                    <div class="inventory-list" id="inventoryList">
+                        <p>Cargando inventario...</p>
+                    </div>
+                </div>
+            </details>
+
+            <details>
+                <summary>➕ Agregar Nuevo Platillo 🔽</summary>
+                <div class="details-content">
+                    <form id="addPlatilloForm">
+                        <div class="admin-form-group">
+                            <label for="nombrePlatillo">Nombre del Platillo</label>
+                            <input type="text" id="nombrePlatillo" placeholder="Ej: Tacos al Pastor" required>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label for="precioPlatillo">Precio ($)</label>
+                            <input type="number" id="precioPlatillo" placeholder="Ej: 80" required>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label for="categoriaPlatillo">Categoría</label>
+                            <select id="categoriaPlatillo">
+                                <option value="PLATILLOS">Platillos</option>
+                                <option value="BEBIDAS">Bebidas</option>
+                            </select>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label for="imagenPlatillo">Nombre de la Imagen (debe estar en src/images/)</label>
+                            <input type="text" id="imagenPlatillo" placeholder="Ej: tacos.jpg" required>
+                        </div>
+
+                        <button type="submit" class="admin-submit-btn">Guardar Platillo</button>
+                    </form>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div class="edit-modal" id="editModal">
+        <div class="edit-content">
+            <button class="close-edit-btn" onclick="cerrarModalEditar()">×</button>
+            <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #f0ad4e; padding-bottom: 10px;">
+                ✏️ Actualizar Platillo
             </h2>
             
-            <form id="addPlatilloForm">
+            <form id="editPlatilloForm">
+                <input type="hidden" id="editId">
+
                 <div class="admin-form-group">
-                    <label for="nombrePlatillo">Nombre del Platillo</label>
-                    <input type="text" id="nombrePlatillo" placeholder="Ej: Tacos al Pastor" required>
+                    <label>Nombre del Platillo</label>
+                    <input type="text" id="editNombre" required>
                 </div>
 
                 <div class="admin-form-group">
-                    <label for="precioPlatillo">Precio ($)</label>
-                    <input type="number" id="precioPlatillo" placeholder="Ej: 80" required>
+                    <label>Precio ($)</label>
+                    <input type="number" id="editPrecio" required>
                 </div>
 
                 <div class="admin-form-group">
-                    <label for="categoriaPlatillo">Categoría</label>
-                    <select id="categoriaPlatillo">
+                    <label>Categoría</label>
+                    <select id="editCategoria">
                         <option value="PLATILLOS">Platillos</option>
                         <option value="BEBIDAS">Bebidas</option>
                     </select>
                 </div>
 
                 <div class="admin-form-group">
-                    <label for="imagenPlatillo">Nombre de la Imagen (debe estar en src/images/)</label>
-                    <input type="text" id="imagenPlatillo" placeholder="Ej: tacos.jpg" required>
+                    <label>Nombre de la Imagen</label>
+                    <input type="text" id="editImagen" required>
                 </div>
 
-                <button type="submit" class="admin-submit-btn">Guardar Platillo</button>
+                <button type="submit" class="admin-submit-btn btn-update">💾 Guardar Cambios</button>
             </form>
         </div>
     </div>
 
     <script type="module">
-        // 1. Importar las funciones necesarias de Firebase
+        // Importamos 'updateDoc' para poder actualizar registros
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // 2. AQUÍ PEGARÁS LA CONFIGURACIÓN DE TU PROYECTO (lo haremos en el siguiente paso)
+        // TUS CREDENCIALES
         const firebaseConfig = {
             apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
             authDomain: "taquiza-web.firebaseapp.com",
@@ -129,40 +338,158 @@
             appId: "1:475601236604:web:775b368768e9822789cff9"
         };
 
-        // 3. Inicializar Firebase y Firestore
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 4. Lógica del formulario
-        document.getElementById('addPlatilloForm').addEventListener('submit', async (e) => {
-            e.preventDefault(); // Evitar que la página se recargue
+        // ==========================================
+        // 1. LEER (READ) Y PINTAR INVENTARIO
+        // ==========================================
+        async function cargarInventario() {
+            const inventoryList = document.getElementById('inventoryList');
+            inventoryList.innerHTML = '<p style="text-align:center;">Cargando inventario...</p>';
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, "menu_items"));
+                
+                if (querySnapshot.empty) {
+                    inventoryList.innerHTML = '<p style="text-align:center; color:#666;">No hay platillos registrados aún.</p>';
+                    return;
+                }
 
-            // Obtener los valores del formulario
+                let html = '';
+                querySnapshot.forEach((documento) => {
+                    const data = documento.data();
+                    const id = documento.id;
+                    
+                    // Limpiamos la ruta para que al editar solo salga el nombre del archivo (ej: tacos.jpg)
+                    const nombreArchivoImg = data.imagen_url.replace("src/images/", "");
+
+                    html += `
+                        <div class="inventory-item">
+                            <img src="${data.imagen_url}" class="inventory-img" alt="${data.nombre}">
+                            <div class="inventory-details">
+                                <h4>${data.nombre}</h4>
+                                <p style="color: #267d46;">$${data.precio}</p>
+                                <p style="font-size: 0.8em; font-weight: normal;">${data.categoria}</p>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn-action btn-edit" 
+                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${nombreArchivoImg}')">
+                                    ✏️ Editar
+                                </button>
+                                <button class="btn-action btn-delete" 
+                                    onclick="borrarPlatillo('${id}', '${data.nombre}')">
+                                    🗑️ Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                inventoryList.innerHTML = html;
+            } catch (error) {
+                console.error("Error:", error);
+                inventoryList.innerHTML = '<p>Error al cargar los platillos.</p>';
+            }
+        }
+
+        // ==========================================
+        // 2. ACTUALIZAR (UPDATE)
+        // ==========================================
+        
+        // Abrir el modal y llenar los campos con los datos actuales
+        window.abrirModalEditar = (id, nombre, precio, categoria, imagen) => {
+            document.getElementById('editId').value = id;
+            document.getElementById('editNombre').value = nombre;
+            document.getElementById('editPrecio').value = precio;
+            document.getElementById('editCategoria').value = categoria;
+            document.getElementById('editImagen').value = imagen;
+            
+            document.getElementById('editModal').classList.add('active');
+        };
+
+        // Cerrar el modal
+        window.cerrarModalEditar = () => {
+            document.getElementById('editModal').classList.remove('active');
+        };
+
+        // Enviar los datos actualizados a Firebase
+        document.getElementById('editPlatilloForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+            
+            const id = document.getElementById('editId').value;
+            const nombreNuevo = document.getElementById('editNombre').value;
+            const precioNuevo = Number(document.getElementById('editPrecio').value);
+            const categoriaNueva = document.getElementById('editCategoria').value;
+            const imagenNueva = document.getElementById('editImagen').value;
+
+            try {
+                // Referencia al documento específico que vamos a editar
+                const platilloRef = doc(db, "menu_items", id);
+                
+                // Actualizamos los campos en la nube
+                await updateDoc(platilloRef, {
+                    nombre: nombreNuevo,
+                    precio: precioNuevo,
+                    categoria: categoriaNueva,
+                    imagen_url: "src/images/" + imagenNueva
+                });
+                
+                alert("¡Platillo actualizado correctamente!");
+                cerrarModalEditar();
+                cargarInventario(); // Recargamos para ver los cambios
+                
+            } catch (error) {
+                console.error("Error actualizando: ", error);
+                alert("Hubo un error al actualizar el platillo.");
+            }
+        });
+
+        // ==========================================
+        // 3. ELIMINAR (DELETE)
+        // ==========================================
+        window.borrarPlatillo = async (id, nombre) => {
+            const confirmacion = confirm(`¿Estás seguro de que deseas eliminar "${nombre}" definitivamente?`);
+            if (confirmacion) {
+                try {
+                    await deleteDoc(doc(db, "menu_items", id));
+                    alert(`¡Platillo "${nombre}" eliminado correctamente!`);
+                    cargarInventario();
+                } catch (error) {
+                    console.error("Error al eliminar: ", error);
+                }
+            }
+        };
+
+        // ==========================================
+        // 4. CREAR (CREATE)
+        // ==========================================
+        document.getElementById('addPlatilloForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); 
             const nombre = document.getElementById('nombrePlatillo').value;
             const precio = Number(document.getElementById('precioPlatillo').value);
             const categoria = document.getElementById('categoriaPlatillo').value;
             const imagen = document.getElementById('imagenPlatillo').value;
 
             try {
-                // Aquí es donde añadimos el documento a Firestore (La "C" del CRUD)
-                // Descomenta esto cuando tengamos la configuración lista   
-                const docRef = await addDoc(collection(db, "menu_items"), {
+                await addDoc(collection(db, "menu_items"), {
                     nombre: nombre,
                     precio: precio,
                     categoria: categoria,
                     imagen_url: "src/images/" + imagen,
                     fecha_creacion: new Date()
                 });
-                console.log("Documento escrito con ID: ", docRef.id);
                 
-                alert("Éxito!: Platillo '" + nombre + "' agregado correctamente.");
-                document.getElementById('addPlatilloForm').reset(); // Limpiar el formulario
-                
+                alert("Éxito!: Platillo agregado correctamente.");
+                document.getElementById('addPlatilloForm').reset(); 
+                cargarInventario();
             } catch (e) {
-                console.error("Error añadiendo documento: ", e);
-                alert("Hubo un error al guardar el platillo.");
+                console.error("Error añadiendo: ", e);
             }
         });
+
+        // Iniciar
+        cargarInventario();
     </script>
 </body>
 </html>
