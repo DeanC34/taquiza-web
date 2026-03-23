@@ -1,0 +1,17 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
+  authDomain: "taquiza-web.firebaseapp.com",
+  projectId: "taquiza-web",
+  storageBucket: "taquiza-web.firebasestorage.app",
+  messagingSenderId: "475601236604",
+  appId: "1:475601236604:web:775b368768e9822789cff9"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);

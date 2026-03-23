@@ -1,205 +1,169 @@
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    
     <title>Menú Digital - Taquiza La Rana</title>
-
+    
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    </head>
+</head>
 
-    <body>
+<body>
+
+    <div class="menu-dropdown">
+        <button onclick="toggleMenu()" class="menu-btn">
+            ☰
+        </button>
+        <div id="dropdownMenu" class="dropdown-content">
+            <button onclick="goToProfile()">👤 Perfil</button>
+            <button onclick="goToSettings()">⚙️ Ajustes</button>
+            <button onclick="goToAdmin()">🛠️ Administrador</button>
+        </div>
+    </div>
 
     <div class="container">
 
-    <div class="header">
-    <img src="src/images/LOGO.jpg" class="logo">
-    <h1>Taquiza La Rana</h1>
-    <p>Menú Digital - ¡Ordena Fácil!</p>
-    <!-- LOGIN GOOGLE -->
-    <div class="user-section">
-    <div id="g_id_onload"
-     data-client_id="446439864979-7pkjop3ncfb3u0bqup5388jc781insn1.apps.googleusercontent.com"
-     data-callback="handleCredentialResponse"
-     data-auto_prompt="false">
-     </div>
-    <div class="g_id_signin"
-    data-type="standard"
-    data-size="large"
-    data-theme="outline"
-    data-text="sign_in_with"
-    data-shape="rectangular">
-    </div>
-    <div id="userInfo"></div>
-    </div>
+        <div class="header">
+            <img src="src/images/LOGO.jpg" class="logo">
+            <h1>Taquiza La Rana</h1>
+            <p>Menú Digital - ¡Ordena Fácil!</p>
+            
+            <div class="user-section">
+                <div id="g_id_onload"
+                     data-client_id="446439864979-7pkjop3ncfb3u0bqup5388jc781insn1.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-shape="rectangular">
+                </div>
+                <div id="userInfo"></div>
+            </div>
+        </div>
 
-    </div>
+        <div class="search-container">
+            <input type="text" 
+                   id="searchInput" 
+                   placeholder="🔎 Buscar..." 
+                   onkeyup="searchProducts()">
+        </div>
 
-    <div class="search-container">
-    <input
-    type="text"
-    id="searchInput"
-    placeholder="🔎 Buscar..."
-    onkeyup="searchProducts()">
-    </div>
+        <div class="menu-container">
+            
+            <div class="category">
+                <h2 class="category-title">⭐ Recomendados para ti</h2>
+                <div class="products" id="recommendedProducts">
+                </div>
+            </div>
 
-    <div class="menu-container">
-    <div class="category">
-    <h2 class="category-title">⭐ Recomendados para ti</h2>
-    <div class="products" id="recommendedProducts">
-    </div>
-    </div>
+            <div class="category">
+                <h2 class="category-title">🍽️ PLATILLOS</h2>
+                <div class="products" id="platillos-container">
+                    <p>Cargando deliciosos platillos...</p>
+                </div>
+            </div>
 
-    <!-- =========================
-    SECCION MENÚ
-    ========================= -->
-    <div class="category">
-    <h2 class="category-title">🍽️ PLATILLOS</h2>
-    <div class="products">
+            <div class="category">
+                <h2 class="category-title">🥤 BEBIDAS</h2>
+                <div class="products" id="bebidas-container">
+                    <p>Cargando bebidas refrescantes...</p>
+                </div>
+            </div>
 
-    <!-- PRODUCTO 1: chamorro -->
-    <div class="product-card">
-    <div class="product-image">
-    <img src="src/images/CHAMORRO.jpg">
+        </div>
     </div>
-    <div class="product-name">Chamorro</div>
-    <div class="product-price">$500</div>
-    <button class="add-btn"
-    onclick="addToCart('CHAMORRO',500)">
-    Agregar
-    </button>
-    </div>
-
-    <!-- PRODUCTO 2: Camaronesnatural -->
-    <div class="product-card">
-    <div class="product-image">
-    <img src="src/images/CAMARONES AL NATURAL.jpg">
-    </div>
-    <div class="product-name">Camarones al natural</div>
-    <div class="product-price">$200</div>
-    <button class="add-btn"
-    onclick="addToCart('Camarones al natural',200)">
-    Agregar
-    </button>
-    </div>
-
-    <!-- PRODUCTO 3: Camaronesaguachile -->
-    <div class="product-card">
-    <div class="product-image">
-    <img src="src/images/CAMARONES EN AGUACHILE.jpg">
-    </div>
-    <div class="product-name">Camarones en aguachile</div>
-    <div class="product-price">$200</div>
-    <button class="add-btn"
-    onclick="addToCart('Camarones en aguachile',200)">
-    Agregar
-    </button>
-    </div>
-
-    </div>
-    </div>
-
-    <!-- =========================
-    SECCION BEBIDAS
-    ========================= -->
-
-    <div class="category">
-    <h2 class="category-title">🥤 BEBIDAS</h2>
-    <div class="products">
-
-    <!-- LIMONADA -->
-    <div class="product-card">
-    <div class="product-image">
-    <img src="src/images/limonada.jpg">
-    </div>
-    <div class="product-name">JARRA DE LIMONADA</div>
-    <div class="product-price">$100</div>
-    <button class="add-btn"
-    onclick="addToCart('JARRA DE LIMONADA',100)">
-    Agregar
-    </button>
-    </div>
-
-    <!-- LITRO PREPARADO -->
-    <div class="product-card">
-    <div class="product-image">
-    <img src="src/images/preparado.jpg">
-    </div>
-    <div class="product-name">LITRO DE PREPARADO</div>
-    <div class="product-price">$160</div>
-    <button class="add-btn"
-    onclick="addToCart('LITRO DE PREPARADO',160)">
-    Agregar
-    </button>
-    </div>
-
-
-    <!-- TASCALATE -->
-    <div class="product-card">
-    <div class="product-image">
-    <img src="src/images/tascalate.jpg">
-    </div>
-    <div class="product-name">JARRA DE TASCALATE</div>
-    <div class="product-price">$120</div>
-    <button class="add-btn"
-    onclick="addToCart('JARRA DE TASCALATE',120)">
-    Agregar
-    </button>
-    </div>
-
-    </div>
-    </div>
-
-    <div class="category">
-    <h2 class="category-title">🔥 Más populares</h2>
-    <div class="products">
-    <div class="product-card">
-    <div class="product-name">Chamorro</div>
-    <p>El más pedido del mes</p>
-    </div>
-    <div class="product-card">
-    <div class="product-name">Camarones en aguachile</div>
-    <p>Favorito de los clientes</p>
-    </div>
-    </div>
-    </div>
-
-    </div>
-    </div>
-
+    
+    <script src="js/crm.js"></script>
     <script src="js/cart.js"></script>
 
-    <!-- Botón flotante del carrito -->
     <div class="cart-float" onclick="toggleCart()">
-    🛒 Mi Pedido <span class="cart-badge" id="cartCount">0</span>
+        🛒 Mi Pedido <span class="cart-badge" id="cartCount">0</span>
     </div>
 
-    <!-- Modal del carrito -->
     <div class="cart-modal" id="cartModal">
-
-    <div class="cart-content">
-
-    <div class="cart-header">
-    <h2>🛒 Mi Pedido</h2>
-    <button class="close-btn" onclick="toggleCart()">×</button>
+        <div class="cart-content">
+            <div class="cart-header">
+                <h2>🛒 Mi Pedido</h2>
+                <button class="close-btn" onclick="toggleCart()">×</button>
+            </div>
+            
+            <div id="cartItems"></div>
+            
+            <div class="cart-total" id="cartTotal">
+                Total: $0
+            </div>
+            
+            <button class="whatsapp-btn" onclick="sendToWhatsApp()">
+                📱 Ordenar por WhatsApp
+            </button>
+        </div>
     </div>
 
-    <div id="cartItems"></div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    <div class="cart-total" id="cartTotal">
-    Total: $0
-    </div>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
+            authDomain: "taquiza-web.firebaseapp.com",
+            projectId: "taquiza-web",
+            storageBucket: "taquiza-web.firebasestorage.app",
+            messagingSenderId: "475601236604",
+            appId: "1:475601236604:web:775b368768e9822789cff9"
+        };
 
-    <button class="whatsapp-btn" onclick="sendToWhatsApp()">
-    📱 Ordenar por WhatsApp
-    </button>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    </div>
+        async function cargarMenu() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "menu_items"));
+                
+                const platillosContainer = document.getElementById("platillos-container");
+                const bebidasContainer = document.getElementById("bebidas-container");
 
-    </div>
+                platillosContainer.innerHTML = "";
+                bebidasContainer.innerHTML = "";
 
-    </body>
-    </html>
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data(); 
+                    
+                    const productHTML = `
+                        <div class="product-card">
+                            <div class="product-image">
+                                <img src="${data.imagen_url}">
+                            </div>
+                            <div class="product-name">${data.nombre}</div>
+                            <div class="product-price">$${data.precio}</div>
+                            <button class="add-btn"
+                                onclick="addToCart('${data.nombre}', ${data.precio})">
+                                Agregar
+                            </button>
+                        </div>
+                    `;
+
+                    if(data.categoria === "PLATILLOS") {
+                        platillosContainer.innerHTML += productHTML;
+                    } else if (data.categoria === "BEBIDAS") {
+                        bebidasContainer.innerHTML += productHTML;
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error al cargar el menú:", error);
+                document.getElementById("platillos-container").innerHTML = "<p>Error al cargar el menú.</p>";
+            }
+        }
+
+        cargarMenu();
+    </script>
+
+</body>
+</html>

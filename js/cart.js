@@ -1,274 +1,169 @@
-// ================================
-// SISTEMA DE CARRITO
-// ================================
+// ==========================================
+// MÓDULO CARRITO DE COMPRAS
+// ==========================================
 
-let cart = [];
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-// Agregar producto al carrito
-function addToCart(name, price){
+// ------------------------------------------
+// 1. GESTIÓN DEL CARRITO
+// ------------------------------------------
+function addToCart(name, price) {
+    const existingItem = cart.find(item => item.name === name);
 
-const existingItem = cart.find(item => item.name === name);
+    if (existingItem) {
+        existingItem.quantity++;
+    } else {
+        cart.push({
+            name: name,
+            price: price,
+            quantity: 1
+        });
+    }
 
-if(existingItem){
-existingItem.quantity++;
-}else{
-cart.push({
-name:name,
-price:price,
-quantity:1
-});
+    updateCart();
+    
+    // Llamamos a la función del crm.js para guardar el historial
+    if (typeof saveCustomerData === "function") {
+        saveCustomerData(name);
+    }
 }
 
-updateCart();
-saveCustomerData(name);
-
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCart();
 }
 
-// Eliminar producto del carrito
-function removeFromCart(index){
+function updateCart() {
+    const cartCount = document.getElementById("cartCount");
+    const cartItems = document.getElementById("cartItems");
+    const cartTotal = document.getElementById("cartTotal");
 
-cart.splice(index,1);
-updateCart();
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartCount.textContent = totalItems;
 
+    let total = 0;
+    let html = "";
+
+    if (cart.length === 0) {
+        cartItems.innerHTML = '<div class="empty-cart">🛒<br><br>Tu carrito está vacío</div>';
+        cartTotal.textContent = "Total: $0";
+        saveCart();
+        return;
+    }
+
+    cart.forEach((item, index) => {
+        const subtotal = item.price * item.quantity;
+        total += subtotal;
+
+        html += `
+            <div class="cart-item">
+                <div class="cart-item-info">
+                    <h4>${item.name}</h4>
+                    <p>Cantidad: ${item.quantity} x $${item.price}</p>
+                    <div class="cart-item-price">$${subtotal}</div>
+                </div>
+                <button class="remove-btn" onclick="removeFromCart(${index})">
+                    Eliminar
+                </button>
+            </div>
+        `;
+    });
+
+    cartItems.innerHTML = html;
+    cartTotal.textContent = "Total: $" + total;
+    saveCart();
 }
 
-// Actualizar interfaz del carrito
-function updateCart(){
-
-const cartCount = document.getElementById("cartCount");
-const cartItems = document.getElementById("cartItems");
-const cartTotal = document.getElementById("cartTotal");
-
-const totalItems = cart.reduce((sum,item)=>sum+item.quantity,0);
-
-cartCount.textContent = totalItems;
-
-let total = 0;
-let html = "";
-
-if(cart.length === 0){
-
-cartItems.innerHTML =
-'<div class="empty-cart">🛒<br><br>Tu carrito está vacío</div>';
-
-cartTotal.textContent = "Total: $0";
-
-return;
-
+function saveCart() {
+    localStorage.setItem("cart", JSON.stringify(cart));
 }
 
-cart.forEach((item,index)=>{
+// Inicializar el carrito visualmente al cargar la página
+window.onload = function() {
+    updateCart();
+};
 
-const subtotal = item.price * item.quantity;
-total += subtotal;
-
-html += `
-<div class="cart-item">
-
-<div class="cart-item-info">
-<h4>${item.name}</h4>
-<p>Cantidad: ${item.quantity} x $${item.price}</p>
-<div class="cart-item-price">$${subtotal}</div>
-</div>
-
-<button class="remove-btn"
-onclick="removeFromCart(${index})">
-Eliminar
-</button>
-
-</div>
-`;
-
-});
-
-cartItems.innerHTML = html;
-cartTotal.textContent = "Total: $" + total;
-
-saveCart();
-
+// ------------------------------------------
+// 2. INTERFAZ Y ENVÍO
+// ------------------------------------------
+function toggleCart() {
+    const modal = document.getElementById("cartModal");
+    modal.classList.toggle("active");
 }
 
-// ================================
-// GUARDAR CARRITO EN EL NAVEGADOR
-// ================================
+function sendToWhatsApp() {
+    if (cart.length === 0) {
+        alert("Tu carrito está vacío");
+        return;
+    }
 
-function saveCart(){
+    let customerName = localStorage.getItem("customerName") || prompt("Ingresa tu nombre para el pedido:");
+    if (!customerName) return; // Si el usuario cancela el prompt
 
-localStorage.setItem("cart",JSON.stringify(cart));
+    let message = `🌮 Nuevo Pedido de *${customerName}* - Taquiza La Rana 🌮\n\n`;
+    let total = 0;
 
+    cart.forEach(item => {
+        const subtotal = item.price * item.quantity;
+        total += subtotal;
+        message += `▪️ ${item.quantity}x ${item.name} ($${subtotal})\n`;
+    });
+
+    message += `\n*Total a pagar: $${total}*`;
+
+    const phone = "5219613591178";
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+    window.open(url, "_blank");
 }
 
-// ================================
-// MOSTRAR / OCULTAR CARRITO
-// ================================
+// ------------------------------------------
+// 3. BÚSQUEDA Y NAVEGACIÓN GENERAL
+// ------------------------------------------
+function searchProducts() {
+    let input = document.getElementById("searchInput").value.toLowerCase();
+    let products = document.querySelectorAll(".product-card");
 
-function toggleCart(){
-
-const modal = document.getElementById("cartModal");
-
-modal.classList.toggle("active");
-
+    products.forEach(product => {
+        let name = product.querySelector(".product-name").innerText.toLowerCase();
+        if (name.includes(input)) {
+            product.style.display = "block";
+        } else {
+            product.style.display = "none";
+        }
+    });
 }
 
-// ================================
-// ENVIAR PEDIDO A WHATSAPP
-// ================================
-
-function sendToWhatsApp(){
-
-if(cart.length === 0){
-alert("Tu carrito está vacío");
-return;
+function toggleMenu() {
+    const menu = document.getElementById("dropdownMenu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
 }
 
-saveCustomer();
-
-let message = "🌮 Nuevo Pedido - Taquiza La Rana 🌮\n\n";
-
-let total = 0;
-
-cart.forEach(item => {
-
-const subtotal = item.price * item.quantity;
-
-total += subtotal;
-
-message += `${item.name}\n`;
-message += `Cantidad: ${item.quantity}\n`;
-message += `Subtotal: $${subtotal}\n\n`;
-
-});
-
-message += `Total: $${total}`;
-
-const phone = "5219613591178";
-
-const url =
-`https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-
-window.open(url,"_blank");
-
+window.onclick = function(event) {
+    if (!event.target.matches('.menu-btn')) {
+        const dropdowns = document.getElementsByClassName("dropdown-content");
+        for (let i = 0; i < dropdowns.length; i++) {
+            let openDropdown = dropdowns[i];
+            if (openDropdown.style.display === "block") {
+                openDropdown.style.display = "none";
+            }
+        }
+    }
 }
 
-// ================================
-// CRM - HISTORIAL DE PRODUCTOS
-// ================================
-
-function saveCustomerData(product){
-
-let history = JSON.parse(localStorage.getItem("customerData")) || [];
-
-history.push(product);
-
-localStorage.setItem(
-"customerData",
-JSON.stringify(history)
-);
-
+function goToProfile() {
+    const userName = localStorage.getItem("customerName");
+    if (userName) {
+        window.location.href = "perfil.html";
+    } else {
+        alert("Por favor, inicia sesión con Google primero para acceder a tu perfil.");
+    }
 }
 
-// ================================
-// CRM - RECOMENDADOR DE PLATILLOS
-// ================================
-
-function recommendProducts(){
-
-let history = JSON.parse(localStorage.getItem("customerData"));
-
-if(!history) return;
-
-let mostOrdered = history.reduce((a,b)=>
-history.filter(v=>v===a).length >=
-history.filter(v=>v===b).length ? a:b
-);
-
-console.log("Producto recomendado:", mostOrdered);
-
+function goToSettings() {
+    alert("⚙️ El panel de ajustes estará disponible próximamente.");
 }
 
-// ================================
-// CRM - GUARDAR CLIENTE
-// ================================
-
-function saveCustomer(){
-
-let name = prompt("Ingresa tu nombre");
-
-localStorage.setItem("customerName",name);
-
-}
-
-// ================================
-// LOGIN GOOGLE (CRM)
-// ================================
-
-function handleCredentialResponse(response){
-
-const data = parseJwt(response.credential);
-
-localStorage.setItem("customerName", data.name);
-localStorage.setItem("customerEmail", data.email);
-
-document.getElementById("userInfo").innerHTML =
-"👤 " + data.name;
-
-}
-
-function parseJwt (token) {
-var base64Url = token.split('.')[1];
-var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-}).join(''));
-
-return JSON.parse(jsonPayload);
-}
-
-// ================================
-// BUSQUEDA DE PRODUCTOS
-// ================================
-
-function searchProducts(){
-
-let input = document.getElementById("searchInput").value.toLowerCase();
-
-let products = document.querySelectorAll(".product-card");
-
-products.forEach(product=>{
-
-let name = product.querySelector(".product-name").innerText.toLowerCase();
-
-if(name.includes(input)){
-product.style.display="block";
-}else{
-product.style.display="none";
-}
-
-});
-
-}
-
-// ================================
-// MOSTRAR RECOMENDADOS
-// ================================
-
-function showRecommended(){
-
-let history = JSON.parse(localStorage.getItem("customerData"));
-
-if(!history || history.length === 0){
-return;
-}
-
-let mostOrdered = history.reduce((a,b)=>
-history.filter(v=>v===a).length >=
-history.filter(v=>v===b).length ? a:b
-);
-
-document.getElementById("recommendedProducts").innerHTML =
-`<div class="product-card">
-<div class="product-name">${mostOrdered}</div>
-<p>Basado en tus pedidos anteriores</p>
-</div>`;
-
+function goToAdmin() {
+    window.location.href = "admin.html";
 }
