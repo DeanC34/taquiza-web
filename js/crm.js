@@ -8,6 +8,11 @@
 function handleCredentialResponse(response) {
     try {
         const data = parseJwt(response.credential);
+        
+        if (!data) {
+            console.error("No se pudo obtener la información del usuario.");
+            return;
+        }
 
         // Guardar datos básicos en LocalStorage
         localStorage.setItem("customerName", data.name);
@@ -29,6 +34,7 @@ function handleCredentialResponse(response) {
         }
         
         if (!phone) {
+            // Primer inicio de sesión
             Swal.fire({
                 title: `¡Bienvenido a La Rana, ${primerNombre}! 🐸`,
                 text: 'Para poder realizar pedidos en línea y ganar Taqui-Puntos, necesitamos un número de WhatsApp.',
@@ -48,6 +54,7 @@ function handleCredentialResponse(response) {
                 }
             });
         } else {
+            // Ya es cliente recurrente
             Swal.fire({
                 title: `¡Hola de nuevo, ${primerNombre}!`,
                 toast: true,
@@ -62,18 +69,21 @@ function handleCredentialResponse(response) {
     }
 }
 
-// Decodificador del Token de Google (VERSIÓN ROBUSTA)
+// Decodificador del Token de Google (BLINDADO)
 function parseJwt(token) {
-    // Usamos split() pero asignamos a variables para que el editor no borre corchetes
-    var partes = token.split('.');
-    var base64Url = partes; // <-- ¡ESTE ES VITAL!
-    
-    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    try {
+        // Extraemos la segunda parte del token (el payload)
+        var base64Url = token.split('.'); 
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
 
-    return JSON.parse(jsonPayload);
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error("Fallo al decodificar el token JWT:", e);
+        return null;
+    }
 }
 
 // ------------------------------------------
