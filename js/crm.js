@@ -23,6 +23,7 @@ function handleCredentialResponse(response) {
     
     if (!phone) {
         // Si no hay teléfono guardado, asumimos que es su primer inicio de sesión
+        // Agregamos para que solo diga tu primer nombre
         Swal.fire({
             title: `¡Bienvenido a La Rana, ${data.name.split(' ')}! 🐸`,
             text: 'Tu perfil ha sido creado automáticamente. Para poder realizar tus pedidos y pagos en línea, necesitamos un número de WhatsApp de contacto.',
@@ -58,7 +59,7 @@ function handleCredentialResponse(response) {
 
 // Decodificador del Token de Google (CORREGIDO)
 function parseJwt(token) {
-    // EL ERROR ESTABA AQUÍ: Faltaba el al final
+    // AQUÍ ESTÁ LA CORRECCIÓN CLAVE: El al final del split
     var base64Url = token.split('.');
     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
