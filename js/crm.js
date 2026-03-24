@@ -7,10 +7,18 @@
 // ------------------------------------------
 function handleCredentialResponse(response) {
     try {
-        const data = parseJwt(response.credential);
+        // La forma más segura de decodificar sin librerías externas
+        const token = response.credential;
+        const base64Url = token.split('.');
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const data = JSON.parse(jsonPayload);
         
-        if (!data) {
-            console.error("No se pudo obtener la información del usuario.");
+        if (!data || !data.email) {
+            console.error("No se pudo obtener el email del usuario.");
             return;
         }
 
@@ -19,8 +27,11 @@ function handleCredentialResponse(response) {
         localStorage.setItem("customerEmail", data.email);
 
         // Actualizar la UI
-        document.getElementById("userInfo").innerHTML = "👤 " + data.name;
-        document.querySelector(".g_id_signin").style.display = "none"; // Ocultar el botón de Google
+        const userInfoDiv = document.getElementById("userInfo");
+        if(userInfoDiv) userInfoDiv.innerHTML = "👤 " + data.name;
+        
+        const signInDiv = document.querySelector(".g_id_signin");
+        if(signInDiv) signInDiv.style.display = "none"; // Ocultar el botón de Google
         
         showRecommended();
 
@@ -66,23 +77,8 @@ function handleCredentialResponse(response) {
         }
     } catch (error) {
         console.error("Error al procesar el login de Google:", error);
-    }
-}
-
-// Decodificador del Token de Google (BLINDADO)
-function parseJwt(token) {
-    try {
-        // Extraemos la segunda parte del token (el payload)
-        var base64Url = token.split('.'); 
-        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        console.error("Fallo al decodificar el token JWT:", e);
-        return null;
+        // Si falla la decodificación manual, usamos un fallback básico
+        Swal.fire('Error', 'Hubo un problema al iniciar sesión. Por favor, intenta de nuevo.', 'error');
     }
 }
 
