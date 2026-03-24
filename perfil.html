@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Taquiza La Rana</title>
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        .profile-container {
+            padding: 20px;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .profile-name {
+            font-size: 2em;
+            color: #267d46;
+            margin-bottom: 5px;
+        }
+
+        .profile-email {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        /* Tarjeta de Taqui-Puntos */
+        .points-card {
+            background: linear-gradient(135deg, #f5576c 0%, #d62f2f 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(214, 47, 47, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .points-number {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-canjear {
+            background: white;
+            color: #d62f2f;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-canjear:hover {
+            transform: scale(1.05);
+        }
+
+        /* Historial y Preferencias */
+        .section-title {
+            color: #333;
+            border-bottom: 2px solid #267d46;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .history-list {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 30px;
+        }
+
+        .history-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 5px solid #267d46;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .promo-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #f5576c;
+        }
+
+        /* Switch tipo iOS */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px; width: 26px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #267d46; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        
+        .back-btn { background: #666; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container" style="margin-top: 50px; padding-bottom: 50px;">
+        <div style="text-align: center; padding-top: 20px;">
+            <button onclick="window.location.href='index.html'" class="menu-btn back-btn">
+                ⬅️ Volver al Menú
+            </button>
+        </div>
+
+        <div class="profile-container">
+            <div class="profile-header">
+                <h1 class="profile-name" id="displayNombre">Cargando...</h1>
+                <p class="profile-email" id="displayEmail">Cargando...</p>
+            </div>
+
+            <div class="points-card">
+                <h2>⭐ Mis Taqui-Puntos</h2>
+                <div class="points-number" id="displayPuntos">0</div>
+                <p>1 Punto = $10 MXN en compras</p>
+                <button class="btn-canjear" onclick="canjearPuntos()">🎁 Canjear por Agua Gratis (50 pts)</button>
+            </div>
+
+            <h2 class="section-title">📦 Mi Historial de Pedidos</h2>
+            <div class="history-list" id="displayHistorial">
+                <p style="text-align: center; color: #666;">Cargando historial desde la nube...</p>
+            </div>
+
+            <h2 class="section-title">💌 Promociones Especiales</h2>
+            <div class="promo-toggle">
+                <div>
+                    <h3 style="color: #333; margin-bottom: 5px;">Recibir Cupones y Ofertas</h3>
+                    <p style="color: #666; font-size: 0.9em; margin: 0;">Te enviaremos descuentos exclusivos a tu correo.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="promoSwitch">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        // Importamos doc, getDoc y setDoc para trabajar con perfiles específicos
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
+            authDomain: "taquiza-web.firebaseapp.com",
+            projectId: "taquiza-web",
+            storageBucket: "taquiza-web.firebasestorage.app",
+            messagingSenderId: "475601236604",
+            appId: "1:475601236604:web:775b368768e9822789cff9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 1. Verificar si el usuario está logueado
+        const customerEmail = localStorage.getItem("customerEmail");
+        const customerName = localStorage.getItem("customerName");
+
+        if (!customerEmail) {
+            alert("⚠️ Debes iniciar sesión con Google para ver tu perfil.");
+            window.location.href = "index.html";
+        } else {
+            document.getElementById("displayNombre").innerText = "👤 " + customerName;
+            document.getElementById("displayEmail").innerText = customerEmail;
+            
+            // Cargar datos de Firebase
+            cargarPerfilCRM();
+        }
+
+        async function cargarPerfilCRM() {
+            try {
+                // Buscamos al cliente en Firebase usando su correo como ID
+                const clienteRef = doc(db, "clientes", customerEmail);
+                const clienteSnap = await getDoc(clienteRef);
+
+                if (clienteSnap.exists()) {
+                    // El cliente ya existe, pintamos sus datos
+                    const datos = clienteSnap.data();
+                    
+                    // Taqui-Puntos
+                    document.getElementById("displayPuntos").innerText = datos.puntos || 0;
+                    
+                    // Switch de promociones
+                    document.getElementById("promoSwitch").checked = datos.suscrito_promos || false;
+
+                    // Historial
+                    const historialDiv = document.getElementById("displayHistorial");
+                    if (datos.historial && datos.historial.length > 0) {
+                        let html = "";
+                        // Invertimos el arreglo para mostrar el más reciente primero
+                        datos.historial.slice().reverse().forEach(pedido => {
+                            html += `
+                                <div class="history-item">
+                                    <h4 style="color: #267d46; margin: 0 0 5px 0;">${pedido.fecha}</h4>
+                                    <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #555;">${pedido.detalle}</p>
+                                    <strong style="color: #d62f2f;">Total: $${pedido.total}</strong>
+                                </div>
+                            `;
+                        });
+                        historialDiv.innerHTML = html;
+                    } else {
+                        historialDiv.innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados.</p>";
+                    }
+
+                } else {
+                    // Es la primera vez que entra a su perfil, le creamos su documento base
+                    await setDoc(clienteRef, {
+                        nombre: customerName,
+                        email: customerEmail,
+                        puntos: 0,
+                        suscrito_promos: false,
+                        historial: []
+                    });
+                    document.getElementById("displayHistorial").innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados. ¡Haz tu primer pedido!</p>";
+                }
+            } catch (error) {
+                console.error("Error al cargar perfil:", error);
+            }
+        }
+
+        // Lógica para actualizar preferencias de correo en la nube
+        document.getElementById("promoSwitch").addEventListener("change", async (e) => {
+            const isChecked = e.target.checked;
+            const clienteRef = doc(db, "clientes", customerEmail);
+            
+            try {
+                await updateDoc(clienteRef, {
+                    suscrito_promos: isChecked
+                });
+                if(isChecked){
+                    alert("¡Genial! Estás suscrito a nuestras promociones. 🌮");
+                }
+            } catch (error) {
+                console.error("Error al actualizar preferencias:", error);
+            }
+        });
+
+        // Lógica temporal para canjear puntos
+        window.canjearPuntos = () => {
+            const puntosActuales = parseInt(document.getElementById("displayPuntos").innerText);
+            if(puntosActuales >= 50) {
+                alert("¡Felicidades! Tienes suficientes puntos. Muestra este mensaje en caja o envíalo por WhatsApp con tu próximo pedido para reclamar tu jarra de agua.");
+                // Aquí en un futuro restaremos los puntos en Firebase
+            } else {
+                alert(`Te faltan ${50 - puntosActuales} puntos. ¡Sigue disfrutando nuestra comida para acumular más!`);
+            }
+        }
+    </script>
+</body>
+</html>

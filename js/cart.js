@@ -167,3 +167,68 @@ function goToSettings() {
 function goToAdmin() {
     window.location.href = "admin.html";
 }
+
+// ==========================================
+// 4. SIMULADOR DE PAGO EN LÍNEA Y CRM
+// ==========================================
+function processWebOrder() {
+    if (cart.length === 0) {
+        alert("Tu carrito está vacío.");
+        return;
+    }
+
+    const customerEmail = localStorage.getItem("customerEmail");
+    if (!customerEmail) {
+        alert("⚠️ Para pagar en línea y acumular Taqui-Puntos, por favor inicia sesión con Google primero.");
+        return;
+    }
+
+    // Elementos de la interfaz
+    const statusDiv = document.getElementById("orderStatus");
+    const btnWeb = document.querySelector(".web-order-btn");
+    const btnWa = document.querySelector(".whatsapp-btn");
+    const cartTotalDiv = document.getElementById("cartTotal");
+    const closeBtn = document.querySelector(".close-btn");
+    
+    // Calcular el total
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // 1. Bloquear botones e iniciar estado
+    statusDiv.style.display = "block";
+    btnWeb.style.display = "none";
+    btnWa.style.display = "none";
+    closeBtn.style.display = "none";
+
+    statusDiv.innerHTML = "⏳ Validando método de pago...";
+    
+    // 2. Simulador con Timers (SetTimeout)
+    setTimeout(() => {
+        statusDiv.innerHTML = "🍳 Recibido. ¡Preparando tu orden en cocina!";
+        statusDiv.style.color = "#f0ad4e"; // Naranja
+        
+        setTimeout(() => {
+            statusDiv.innerHTML = "✅ ¡Pago exitoso y orden lista!";
+            statusDiv.style.color = "#267d46"; // Verde
+            
+            // 3. ENVIAR A FIREBASE (Llamamos a la función global en index.html)
+            if (window.guardarPedidoEnCRM) {
+                // Pasamos una copia del carrito y el total
+                window.guardarPedidoEnCRM([...cart], total);
+            }
+            
+            // 4. Limpiar el carrito
+            cart = [];
+            updateCart();
+            
+            // 5. Restaurar interfaz después de unos segundos y cerrar modal
+            setTimeout(() => {
+                statusDiv.style.display = "none";
+                btnWeb.style.display = "block";
+                btnWa.style.display = "block";
+                closeBtn.style.display = "block";
+                toggleCart();
+            }, 3500);
+
+        }, 3000); // 3000 milisegundos (3 segundos)
+    }, 2000);  // 2 seg valida pago
+}

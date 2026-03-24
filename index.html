@@ -8,6 +8,7 @@
     <title>Menú Digital - Taquiza La Rana</title>
     
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -87,7 +88,7 @@
         🛒 Mi Pedido <span class="cart-badge" id="cartCount">0</span>
     </div>
 
-    <div class="cart-modal" id="cartModal">
+<div class="cart-modal" id="cartModal">
         <div class="cart-content">
             <div class="cart-header">
                 <h2>🛒 Mi Pedido</h2>
@@ -99,70 +100,149 @@
             <div class="cart-total" id="cartTotal">
                 Total: $0
             </div>
+
+            <div id="orderStatus" style="display:none; text-align:center; margin: 15px 0; font-size: 1.2em; font-weight:bold; color: #267d46;">
+                ⏳ Procesando...
+            </div>
             
             <button class="whatsapp-btn" onclick="sendToWhatsApp()">
                 📱 Ordenar por WhatsApp
+            </button>
+            
+            <button class="web-order-btn" onclick="processWebOrder()" 
+                style="width: 100%; padding: 18px; background: #f0ad4e; color: #333; border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 10px; transition: all 0.3s ease;">
+                💳 Pagar en Línea (Acumula Puntos)
             </button>
         </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+            // IMPORTANTE: Aquí agregamos doc, getDoc, updateDoc y setDoc
+            import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
-            authDomain: "taquiza-web.firebaseapp.com",
-            projectId: "taquiza-web",
-            storageBucket: "taquiza-web.firebasestorage.app",
-            messagingSenderId: "475601236604",
-            appId: "1:475601236604:web:775b368768e9822789cff9"
-        };
+            const firebaseConfig = {
+                apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
+                authDomain: "taquiza-web.firebaseapp.com",
+                projectId: "taquiza-web",
+                storageBucket: "taquiza-web.firebasestorage.app",
+                messagingSenderId: "475601236604",
+                appId: "1:475601236604:web:775b368768e9822789cff9"
+            };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
 
-        async function cargarMenu() {
-            try {
-                const querySnapshot = await getDocs(collection(db, "menu_items"));
-                
-                const platillosContainer = document.getElementById("platillos-container");
-                const bebidasContainer = document.getElementById("bebidas-container");
+            // ==========================================
+            // 1. CARGAR MENÚ DESDE FIREBASE
+            // ==========================================
+            async function cargarMenu() {
+                try {
+                    const querySnapshot = await getDocs(collection(db, "menu_items"));
+                    const platillosContainer = document.getElementById("platillos-container");
+                    const bebidasContainer = document.getElementById("bebidas-container");
 
-                platillosContainer.innerHTML = "";
-                bebidasContainer.innerHTML = "";
+                    platillosContainer.innerHTML = "";
+                    bebidasContainer.innerHTML = "";
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data(); 
-                    
-                    const productHTML = `
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="${data.imagen_url}">
+                    querySnapshot.forEach((documento) => {
+                        const data = documento.data(); 
+                        
+                        const productHTML = `
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="${data.imagen_url}">
+                                </div>
+                                <div class="product-name">${data.nombre}</div>
+                                <div class="product-price">$${data.precio}</div>
+                                <button class="add-btn"
+                                    onclick="addToCart('${data.nombre}', ${data.precio})">
+                                    Agregar
+                                </button>
                             </div>
-                            <div class="product-name">${data.nombre}</div>
-                            <div class="product-price">$${data.precio}</div>
-                            <button class="add-btn"
-                                onclick="addToCart('${data.nombre}', ${data.precio})">
-                                Agregar
-                            </button>
-                        </div>
-                    `;
+                        `;
 
-                    if(data.categoria === "PLATILLOS") {
-                        platillosContainer.innerHTML += productHTML;
-                    } else if (data.categoria === "BEBIDAS") {
-                        bebidasContainer.innerHTML += productHTML;
-                    }
-                });
-
-            } catch (error) {
-                console.error("Error al cargar el menú:", error);
-                document.getElementById("platillos-container").innerHTML = "<p>Error al cargar el menú.</p>";
+                        if(data.categoria === "PLATILLOS") {
+                            platillosContainer.innerHTML += productHTML;
+                        } else if (data.categoria === "BEBIDAS") {
+                            bebidasContainer.innerHTML += productHTML;
+                        }
+                    });
+                } catch (error) {
+                    console.error("Error al cargar el menú:", error);
+                    document.getElementById("platillos-container").innerHTML = "<p>Error al cargar el menú.</p>";
+                }
             }
-        }
 
-        cargarMenu();
+            cargarMenu();
+
+            // ==========================================
+            // 2. PUENTE CRM: GUARDAR PEDIDO Y PUNTOS EN LA NUBE
+            // ==========================================
+            window.guardarPedidoEnCRM = async (carritoTerminado, totalPagado) => {
+                const email = localStorage.getItem("customerEmail");
+                const nombre = localStorage.getItem("customerName");
+                
+                if (!email) return;
+
+                const clienteRef = doc(db, "clientes", email);
+                
+                try {
+                    const clienteSnap = await getDoc(clienteRef);
+                    
+                    // 1 Punto por cada $10 gastados
+                    const puntosGanados = Math.floor(totalPagado / 10);
+                    
+                    // Formatear la fecha
+                    const fechaActual = new Date().toLocaleDateString("es-MX") + " " + new Date().toLocaleTimeString("es-MX", {hour: '2-digit', minute:'2-digit'});
+                    const detallePedido = carritoTerminado.map(item => `${item.quantity}x ${item.name}`).join(", ");
+
+                    const nuevoPedido = {
+                        fecha: fechaActual,
+                        detalle: detallePedido,
+                        total: totalPagado
+                    };
+
+                    if (clienteSnap.exists()) {
+                        const datos = clienteSnap.data();
+                        const puntosActuales = datos.puntos || 0;
+                        const historialActual = datos.historial || [];
+                        
+                        historialActual.push(nuevoPedido);
+                        
+                        await updateDoc(clienteRef, {
+                            puntos: puntosActuales + puntosGanados,
+                            historial: historialActual
+                        });
+                    } else {
+                        await setDoc(clienteRef, {
+                            nombre: nombre,
+                            email: email,
+                            puntos: puntosGanados,
+                            suscrito_promos: false,
+                            historial: [nuevoPedido]
+                        });
+                    }
+                    
+                    // MAGIA: Usamos SweetAlert2 en lugar de alert()
+                    Swal.fire({
+                        title: '¡Pago Exitoso!',
+                        text: `¡Gracias por tu compra! Has ganado ${puntosGanados} Taqui-Puntos.`,
+                        icon: 'success',
+                        confirmButtonText: '¡Genial!',
+                        confirmButtonColor: '#267d46'
+                    });
+                    
+                } catch (error) {
+                    console.error("Error al registrar en CRM:", error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No pudimos registrar tus puntos.',
+                        icon: 'error',
+                        confirmButtonColor: '#d62f2f'
+                    });
+                }
+            };
     </script>
 
 </body>
