@@ -14,13 +14,51 @@ function handleCredentialResponse(response) {
 
     // Actualizar la UI
     document.getElementById("userInfo").innerHTML = "👤 " + data.name;
+    document.querySelector(".g_id_signin").style.display = "none"; // Ocultar el botón de Google
     
-    // Al iniciar sesión, mostramos las recomendaciones
     showRecommended();
+
+    // LÓGICA DE BIENVENIDA Y TELÉFONO
+    let phone = localStorage.getItem("customerPhone");
+    
+    if (!phone) {
+        // Si no hay teléfono guardado, asumimos que es su primer inicio de sesión
+        Swal.fire({
+            title: `¡Bienvenido a La Rana, ${data.name.split(' ')}! 🐸`,
+            text: 'Tu perfil ha sido creado automáticamente. Para poder realizar tus pedidos y pagos en línea, necesitamos un número de WhatsApp de contacto.',
+            icon: 'info',
+            input: 'tel',
+            inputPlaceholder: 'Ej: 9611234567',
+            confirmButtonText: 'Guardar Teléfono',
+            confirmButtonColor: '#267d46',
+            allowOutsideClick: false, // Obliga al usuario a poner el número
+            inputValidator: (value) => {
+                if (!value) {
+                    return '¡Necesitamos tu número para entregar tus tacos!'
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                localStorage.setItem("customerPhone", result.value);
+                Swal.fire('¡Excelente!', 'Perfil completado. Ya puedes hacer tu pedido.', 'success');
+            }
+        });
+    } else {
+        // Si ya tiene teléfono, solo le damos una pequeña bienvenida discreta
+        Swal.fire({
+            title: `¡Hola de nuevo, ${data.name.split(' ')}!`,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            icon: 'success'
+        });
+    }
 }
 
-// Decodificador del Token de Google
+// Decodificador del Token de Google (CORREGIDO)
 function parseJwt(token) {
+    // EL ERROR ESTABA AQUÍ: Faltaba el al final
     var base64Url = token.split('.');
     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
@@ -43,17 +81,12 @@ function showRecommended() {
     let history = JSON.parse(localStorage.getItem("customerOrderHistory"));
     const recommendedContainer = document.getElementById("recommendedProducts");
 
-    // Si no hay historial o el contenedor no existe, salir
-    if (!history || history.length === 0 || !recommendedContainer) {
-        return;
-    }
+    if (!history || history.length === 0 || !recommendedContainer) return;
 
-    // Lógica para encontrar el producto más repetido
     let mostOrdered = history.reduce((a, b) =>
         history.filter(v => v === a).length >= history.filter(v => v === b).length ? a : b
     );
 
-    // Dibujar la tarjeta de recomendación
     recommendedContainer.innerHTML = `
         <div class="product-card" style="border-color: #f5576c; background-color: #fff9fa;">
             <div class="product-name">⭐ ${mostOrdered}</div>
@@ -80,11 +113,9 @@ function togglePromoEmails() {
     const isSubscribed = localStorage.getItem("promoSubscribed") === "true";
 
     if(isSubscribed) {
-        // Lógica futura: Eliminar de la base de datos de correos en Firebase
         localStorage.setItem("promoSubscribed", "false");
         alert("Te has dado de baja de las promociones. 😔");
     } else {
-        // Lógica futura: Agregar correo a Firebase Mailchimp/SendGrid
         localStorage.setItem("promoSubscribed", "true");
         alert("¡Genial! Recibirás nuestras mejores taquizas en: " + email);
     }

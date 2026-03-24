@@ -143,6 +143,7 @@
             <div class="profile-header">
                 <h1 class="profile-name" id="displayNombre">Cargando...</h1>
                 <p class="profile-email" id="displayEmail">Cargando...</p>
+                <p id="displayPhone" style="color: #267d46; font-weight: bold; margin-top: 5px;">Cargando teléfono...</p>
             </div>
 
             <div class="points-card">
@@ -203,56 +204,54 @@
             cargarPerfilCRM();
         }
 
-        async function cargarPerfilCRM() {
-            try {
-                // Buscamos al cliente en Firebase usando su correo como ID
-                const clienteRef = doc(db, "clientes", customerEmail);
-                const clienteSnap = await getDoc(clienteRef);
+    async function cargarPerfilCRM() {
+                try {
+                    const clienteRef = doc(db, "clientes", customerEmail);
+                    const clienteSnap = await getDoc(clienteRef);
+                    const phoneLocal = localStorage.getItem("customerPhone") || "";
 
-                if (clienteSnap.exists()) {
-                    // El cliente ya existe, pintamos sus datos
-                    const datos = clienteSnap.data();
-                    
-                    // Taqui-Puntos
-                    document.getElementById("displayPuntos").innerText = datos.puntos || 0;
-                    
-                    // Switch de promociones
-                    document.getElementById("promoSwitch").checked = datos.suscrito_promos || false;
+                    if (clienteSnap.exists()) {
+                        const datos = clienteSnap.data();
+                        
+                        // Mostrar teléfono (prioridad a Firebase, si no, al LocalStorage)
+                        document.getElementById("displayPhone").innerText = "📱 " + (datos.telefono || phoneLocal || "Sin número registrado");
+                        document.getElementById("displayPuntos").innerText = datos.puntos || 0;
+                        document.getElementById("promoSwitch").checked = datos.suscrito_promos || false;
 
-                    // Historial
-                    const historialDiv = document.getElementById("displayHistorial");
-                    if (datos.historial && datos.historial.length > 0) {
-                        let html = "";
-                        // Invertimos el arreglo para mostrar el más reciente primero
-                        datos.historial.slice().reverse().forEach(pedido => {
-                            html += `
-                                <div class="history-item">
-                                    <h4 style="color: #267d46; margin: 0 0 5px 0;">${pedido.fecha}</h4>
-                                    <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #555;">${pedido.detalle}</p>
-                                    <strong style="color: #d62f2f;">Total: $${pedido.total}</strong>
-                                </div>
-                            `;
-                        });
-                        historialDiv.innerHTML = html;
+                        const historialDiv = document.getElementById("displayHistorial");
+                        if (datos.historial && datos.historial.length > 0) {
+                            let html = "";
+                            datos.historial.slice().reverse().forEach(pedido => {
+                                html += `
+                                    <div class="history-item">
+                                        <h4 style="color: #267d46; margin: 0 0 5px 0;">${pedido.fecha}</h4>
+                                        <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #555;">${pedido.detalle}</p>
+                                        <strong style="color: #d62f2f;">Total: $${pedido.total}</strong>
+                                    </div>
+                                `;
+                            });
+                            historialDiv.innerHTML = html;
+                        } else {
+                            historialDiv.innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados.</p>";
+                        }
+
                     } else {
-                        historialDiv.innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados.</p>";
+                        // Si es nuevo en Firebase, guardamos su perfil incluyendo el teléfono
+                        await setDoc(clienteRef, {
+                            nombre: customerName,
+                            email: customerEmail,
+                            telefono: phoneLocal, // Añadimos el teléfono a la base de datos
+                            puntos: 0,
+                            suscrito_promos: false,
+                            historial: []
+                        });
+                        document.getElementById("displayPhone").innerText = "📱 " + phoneLocal;
+                        document.getElementById("displayHistorial").innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados. ¡Haz tu primer pedido!</p>";
                     }
-
-                } else {
-                    // Es la primera vez que entra a su perfil, le creamos su documento base
-                    await setDoc(clienteRef, {
-                        nombre: customerName,
-                        email: customerEmail,
-                        puntos: 0,
-                        suscrito_promos: false,
-                        historial: []
-                    });
-                    document.getElementById("displayHistorial").innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados. ¡Haz tu primer pedido!</p>";
+                } catch (error) {
+                    console.error("Error al cargar perfil:", error);
                 }
-            } catch (error) {
-                console.error("Error al cargar perfil:", error);
             }
-        }
 
         // Lógica para actualizar preferencias de correo en la nube
         document.getElementById("promoSwitch").addEventListener("change", async (e) => {
