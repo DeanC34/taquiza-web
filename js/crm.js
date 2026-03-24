@@ -3,22 +3,14 @@
 // ==========================================
 
 // ------------------------------------------
-// 1. LOGIN CON GOOGLE
+// 1. LOGIN CON GOOGLE (Fijado al window)
 // ------------------------------------------
-function handleCredentialResponse(response) {
+window.handleCredentialResponse = function(response) {
     try {
-        // La forma más segura de decodificar sin librerías externas
-        const token = response.credential;
-        const base64Url = token.split('.');
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-
-        const data = JSON.parse(jsonPayload);
+        const data = window.parseJwt(response.credential);
         
         if (!data || !data.email) {
-            console.error("No se pudo obtener el email del usuario.");
+            console.error("No se pudo obtener la información del usuario.");
             return;
         }
 
@@ -31,21 +23,19 @@ function handleCredentialResponse(response) {
         if(userInfoDiv) userInfoDiv.innerHTML = "👤 " + data.name;
         
         const signInDiv = document.querySelector(".g_id_signin");
-        if(signInDiv) signInDiv.style.display = "none"; // Ocultar el botón de Google
+        if(signInDiv) signInDiv.style.display = "none";
         
-        showRecommended();
+        window.showRecommended();
 
         // LÓGICA DE BIENVENIDA Y TELÉFONO
         let phone = localStorage.getItem("customerPhone");
         
-        // Obtenemos solo el primer nombre de forma segura
         let primerNombre = data.name;
         if(data.name.indexOf(' ') > -1) {
             primerNombre = data.name.substring(0, data.name.indexOf(' '));
         }
         
         if (!phone) {
-            // Primer inicio de sesión
             Swal.fire({
                 title: `¡Bienvenido a La Rana, ${primerNombre}! 🐸`,
                 text: 'Para poder realizar pedidos en línea y ganar Taqui-Puntos, necesitamos un número de WhatsApp.',
@@ -65,7 +55,6 @@ function handleCredentialResponse(response) {
                 }
             });
         } else {
-            // Ya es cliente recurrente
             Swal.fire({
                 title: `¡Hola de nuevo, ${primerNombre}!`,
                 toast: true,
@@ -77,21 +66,35 @@ function handleCredentialResponse(response) {
         }
     } catch (error) {
         console.error("Error al procesar el login de Google:", error);
-        // Si falla la decodificación manual, usamos un fallback básico
-        Swal.fire('Error', 'Hubo un problema al iniciar sesión. Por favor, intenta de nuevo.', 'error');
     }
-}
+};
+
+// Decodificador del Token
+window.parseJwt = function(token) {
+    try {
+        var base64Url = token.split('.');
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error("Fallo al decodificar el token JWT:", e);
+        return null;
+    }
+};
 
 // ------------------------------------------
 // 2. HISTORIAL DE PEDIDOS (Recomendador)
 // ------------------------------------------
-function saveCustomerData(productName) {
+window.saveCustomerData = function(productName) {
     let history = JSON.parse(localStorage.getItem("customerOrderHistory")) || [];
     history.push(productName);
     localStorage.setItem("customerOrderHistory", JSON.stringify(history));
-}
+};
 
-function showRecommended() {
+window.showRecommended = function() {
     let history = JSON.parse(localStorage.getItem("customerOrderHistory"));
     const recommendedContainer = document.getElementById("recommendedProducts");
 
@@ -111,21 +114,18 @@ function showRecommended() {
             </button>
         </div>
     `;
-}
+};
 
 // ------------------------------------------
-// 3. SUSCRIPCIÓN A CORREOS PROMOCIONALES
+// 3. SUSCRIPCIÓN A CORREOS
 // ------------------------------------------
-function togglePromoEmails() {
+window.togglePromoEmails = function() {
     const email = localStorage.getItem("customerEmail");
-    
     if(!email) {
         alert("Primero debes iniciar sesión con Google para suscribirte.");
         return;
     }
-
     const isSubscribed = localStorage.getItem("promoSubscribed") === "true";
-
     if(isSubscribed) {
         localStorage.setItem("promoSubscribed", "false");
         alert("Te has dado de baja de las promociones. 😔");
@@ -133,4 +133,4 @@ function togglePromoEmails() {
         localStorage.setItem("promoSubscribed", "true");
         alert("¡Genial! Recibirás nuestras mejores taquizas en: " + email);
     }
-}
+};
