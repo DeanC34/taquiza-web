@@ -6,61 +6,68 @@
 // 1. LOGIN CON GOOGLE
 // ------------------------------------------
 function handleCredentialResponse(response) {
-    const data = parseJwt(response.credential);
+    try {
+        const data = parseJwt(response.credential);
 
-    // Guardar datos básicos en LocalStorage
-    localStorage.setItem("customerName", data.name);
-    localStorage.setItem("customerEmail", data.email);
+        // Guardar datos básicos en LocalStorage
+        localStorage.setItem("customerName", data.name);
+        localStorage.setItem("customerEmail", data.email);
 
-    // Actualizar la UI
-    document.getElementById("userInfo").innerHTML = "👤 " + data.name;
-    document.querySelector(".g_id_signin").style.display = "none"; // Ocultar el botón de Google
-    
-    showRecommended();
+        // Actualizar la UI
+        document.getElementById("userInfo").innerHTML = "👤 " + data.name;
+        document.querySelector(".g_id_signin").style.display = "none"; // Ocultar el botón de Google
+        
+        showRecommended();
 
-    // LÓGICA DE BIENVENIDA Y TELÉFONO
-    let phone = localStorage.getItem("customerPhone");
-    
-    if (!phone) {
-        // Si no hay teléfono guardado, asumimos que es su primer inicio de sesión
-        // Agregamos para que solo diga tu primer nombre
-        Swal.fire({
-            title: `¡Bienvenido a La Rana, ${data.name.split(' ')}! 🐸`,
-            text: 'Tu perfil ha sido creado automáticamente. Para poder realizar tus pedidos y pagos en línea, necesitamos un número de WhatsApp de contacto.',
-            icon: 'info',
-            input: 'tel',
-            inputPlaceholder: 'Ej: 9611234567',
-            confirmButtonText: 'Guardar Teléfono',
-            confirmButtonColor: '#267d46',
-            allowOutsideClick: false, // Obliga al usuario a poner el número
-            inputValidator: (value) => {
-                if (!value) {
-                    return '¡Necesitamos tu número para entregar tus tacos!'
+        // LÓGICA DE BIENVENIDA Y TELÉFONO
+        let phone = localStorage.getItem("customerPhone");
+        
+        // Obtenemos solo el primer nombre de forma segura
+        let primerNombre = data.name;
+        if(data.name.indexOf(' ') > -1) {
+            primerNombre = data.name.substring(0, data.name.indexOf(' '));
+        }
+        
+        if (!phone) {
+            Swal.fire({
+                title: `¡Bienvenido a La Rana, ${primerNombre}! 🐸`,
+                text: 'Para poder realizar pedidos en línea y ganar Taqui-Puntos, necesitamos un número de WhatsApp.',
+                icon: 'info',
+                input: 'tel',
+                inputPlaceholder: 'Ej: 9611234567',
+                confirmButtonText: 'Guardar Teléfono',
+                confirmButtonColor: '#267d46',
+                allowOutsideClick: false,
+                inputValidator: (value) => {
+                    if (!value) return '¡Necesitamos tu número para entregar tus tacos!';
                 }
-            }
-        }).then((result) => {
-            if (result.isConfirmed && result.value) {
-                localStorage.setItem("customerPhone", result.value);
-                Swal.fire('¡Excelente!', 'Perfil completado. Ya puedes hacer tu pedido.', 'success');
-            }
-        });
-    } else {
-        // Si ya tiene teléfono, solo le damos una pequeña bienvenida discreta
-        Swal.fire({
-            title: `¡Hola de nuevo, ${data.name.split(' ')}!`,
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            icon: 'success'
-        });
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    localStorage.setItem("customerPhone", result.value);
+                    Swal.fire('¡Excelente!', 'Perfil completado. Ya puedes hacer tu pedido.', 'success');
+                }
+            });
+        } else {
+            Swal.fire({
+                title: `¡Hola de nuevo, ${primerNombre}!`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                icon: 'success'
+            });
+        }
+    } catch (error) {
+        console.error("Error al procesar el login de Google:", error);
     }
 }
 
-// Decodificador del Token de Google (CORREGIDO)
+// Decodificador del Token de Google (VERSIÓN ROBUSTA)
 function parseJwt(token) {
-    // AQUÍ ESTÁ LA CORRECCIÓN CLAVE: El al final del split
-    var base64Url = token.split('.');
+    // Usamos split() pero asignamos a variables para que el editor no borre corchetes
+    var partes = token.split('.');
+    var base64Url = partes; // <-- ¡ESTE ES VITAL!
+    
     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
