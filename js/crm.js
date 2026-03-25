@@ -197,7 +197,7 @@ function procesarLogin(email, codigo) {
 
 function enviarCodigoPorCorreo(nombre, correo, codigo) {
     if(window.emailjs) {
-        emailjs.send("TU_SERVICE_ID_AQUI", "TU_TEMPLATE_ID_VERIFICACION_AQUI", {
+        emailjs.send("service_taquizalarana", "template_kp9868k", {
             to_name: nombre,
             to_email: correo,
             verification_code: codigo
