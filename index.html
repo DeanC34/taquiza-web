@@ -12,35 +12,33 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
-            // Inicializar EmailJS con tu Public Key (Te diré cómo obtenerla)
+            // Reemplaza "TU_PUBLIC_KEY_AQUI" con tu Public Key de EmailJS
             emailjs.init({
               publicKey: "TU_PUBLIC_KEY_AQUI",
             });
         })();
     </script>
     
-    <script src="js/crm.js?v=7"></script>
+    <script src="js/crm.js?v=8"></script>
 </head>
 
 <body>
-    <div class="top-menu-bar">
-        <div class="menu-dropdown">
-            <button onclick="toggleMenu()" class="menu-btn">☰</button>
-            <div id="dropdownMenu" class="dropdown-content">
-                <button onclick="goToProfile()">👤 Perfil</button>
-                <button onclick="goToSettings()">⚙️ Ajustes</button>
-                <button onclick="goToAdmin()">🛠️ Administrador</button>
-            </div>
-        </div>
-
-        <div class="user-dropdown">
-            <button onclick="openLoginModal()" class="menu-btn" id="userLoginBtn" style="background: #267d46;">
-                👤 Acceder
-            </button>
+    <div class="menu-dropdown">
+        <button onclick="toggleMenu()" class="menu-btn">☰</button>
+        <div id="dropdownMenu" class="dropdown-content">
+            <button onclick="goToProfile()">👤 Perfil</button>
+            <button onclick="goToSettings()">⚙️ Ajustes</button>
+            <button onclick="goToAdmin()">🛠️ Administrador</button>
         </div>
     </div>
 
-    <div class="container">
+    <div class="user-dropdown">
+        <button onclick="openLoginModal()" class="menu-btn" id="userLoginBtn" style="background: #267d46;">
+            👤 Acceder
+        </button>
+    </div>
+
+    <div class="container" style="margin-top: 70px;">
         <div class="header">
             <img src="src/images/LOGO.jpg" class="logo">
             <h1>Taquiza La Rana</h1>
@@ -163,30 +161,57 @@
 
         cargarMenu();
 
-        // PUENTE CRM
+        // PUENTE CRM Y VALIDACIÓN DE PAGO
         window.guardarPedidoEnCRM = async (carritoTerminado, totalPagado) => {
             const email = localStorage.getItem("customerEmail");
             const nombre = localStorage.getItem("customerName");
-            const estaVerificado = localStorage.getItem("emailVerified") === "true";
+            const phone = localStorage.getItem("customerPhone");
+            const isVerified = localStorage.getItem("emailVerified") === "true";
             
-            if (!email) return;
+            // 1. Validar que tenga sesión
+            if (!email || !nombre) {
+                Swal.fire('Error', 'Debes iniciar sesión para pagar en línea.', 'error');
+                return;
+            }
 
-            // Bloqueo: No dar puntos si no ha verificado el correo (Para evitar spam)
-            if (!estaVerificado) {
+            // 2. Validar que tenga teléfono
+            if (!phone) {
                 Swal.fire({
-                    title: '¡Casi listo!',
-                    text: 'Recibimos tu pedido y ya se está cocinando. Sin embargo, para ganar Taqui-Puntos, necesitas verificar tu correo electrónico ingresando el código que te enviamos.',
+                    title: 'Falta tu teléfono',
+                    text: 'Para pagar en línea y entregar tu pedido necesitamos un número de WhatsApp.',
                     icon: 'warning',
-                    confirmButtonText: 'Ir a Verificar',
-                    confirmButtonColor: '#f5576c'
+                    confirmButtonText: 'Ir al Perfil',
+                    confirmButtonColor: '#f0ad4e'
                 }).then(() => {
                     window.location.href = 'perfil.html';
                 });
                 return;
             }
 
+            // 3. Validar que el correo esté verificado para dar puntos
+            if (!isVerified) {
+                Swal.fire({
+                    title: '¡Casi listo!',
+                    text: 'Procesaremos tu pago, pero para ganar Taqui-Puntos necesitas verificar tu correo electrónico.',
+                    icon: 'warning',
+                    confirmButtonText: 'Ir a Verificar',
+                    confirmButtonColor: '#f5576c',
+                    showCancelButton: true,
+                    cancelButtonText: 'Pagar sin puntos'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'perfil.html';
+                        return; // Detiene el pago y lo manda al perfil
+                    } else {
+                        // Si elige pagar sin puntos, solo lanzamos alerta de éxito y no guardamos en Firebase
+                        Swal.fire('¡Pago Exitoso!', 'Tu pedido está en cocina. No se acumularon puntos.', 'success');
+                    }
+                });
+                return; // Importante: Salir si no está verificado
+            }
+
+            // Si pasa todo, procede a Firebase y envia correo
             const clienteRef = doc(db, "clientes", email);
-            
             try {
                 const clienteSnap = await getDoc(clienteRef);
                 const puntosGanados = Math.floor(totalPagado / 10);
@@ -210,11 +235,20 @@
                         puntos: puntosActuales + puntosGanados,
                         historial: historialActual
                     });
+                } else {
+                    await setDoc(clienteRef, {
+                        nombre: nombre,
+                        email: email,
+                        telefono: phone,
+                        puntos: puntosGanados,
+                        suscrito_promos: localStorage.getItem("promoSubscribed") === "true",
+                        historial: [nuevoPedido]
+                    });
                 }
                 
-                // Disparar correo de Factura/Recibo usando EmailJS
+                // Enviar Factura por EmailJS
                 const primerNombre = nombre.split(' ');
-                emailjs.send("TU_SERVICE_ID", "TU_TEMPLATE_ID_FACTURA", {
+                emailjs.send("TU_SERVICE_ID_AQUI", "TU_TEMPLATE_ID_FACTURA_AQUI", {
                     to_name: primerNombre,
                     to_email: email,
                     order_date: fechaActual,
@@ -222,14 +256,14 @@
                     order_total: "$" + totalPagado + " MXN",
                     points_earned: puntosGanados
                 }).then(function() {
-                    console.log('Factura enviada por correo!');
+                    console.log('Factura enviada');
                 }, function(error) {
-                    console.log('Error enviando factura...', error);
+                    console.error('Error enviando factura:', error);
                 });
 
                 Swal.fire({
                     title: '¡Pago Exitoso!',
-                    text: `¡Gracias por tu compra! Has ganado ${puntosGanados} Taqui-Puntos. Te hemos enviado tu recibo por correo.`,
+                    text: `¡Gracias por tu compra! Has ganado ${puntosGanados} Taqui-Puntos. Te hemos enviado el recibo.`,
                     icon: 'success',
                     confirmButtonText: '¡Genial!',
                     confirmButtonColor: '#267d46'
@@ -237,7 +271,7 @@
                 
             } catch (error) {
                 console.error("Error al registrar en CRM:", error);
-                Swal.fire('Error', 'No pudimos registrar tus puntos.', 'error');
+                Swal.fire('Error', 'Hubo un error al procesar los datos en la nube.', 'error');
             }
         };
     </script>

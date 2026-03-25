@@ -646,19 +646,65 @@ details[open] .details-content {
 }
 
 /* =======================================
-   BOTONES FLOTANTES SUPERIORES
+   BOTONES FLOTANTES SUPERIORES (CORREGIDO)
    ======================================= */
-.top-menu-bar {
+.menu-dropdown {
     position: fixed;
     top: 20px;
     left: 20px;
-    right: 20px;
-    display: flex;
-    justify-content: space-between;
     z-index: 3000;
-    pointer-events: none; /* Permite clickear el fondo verde a través del contenedor invisible */
 }
 
-.top-menu-bar > div {
-    pointer-events: auto; /* Reactiva clicks en los botones */
+.user-dropdown {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 3000;
+}
+
+.menu-btn {
+    background: #f5576c;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+    background: #d62f2f;
+    transform: scale(1.05);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    width: 200px;
+}
+
+.dropdown-content button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border: none;
+    background: white;
+    text-align: left;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.dropdown-content button:hover {
+    background: #f0f0f0;
+    color: #267d46;
 }

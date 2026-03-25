@@ -5,7 +5,8 @@
 window.addEventListener('DOMContentLoaded', () => {
     const currentName = localStorage.getItem("customerName");
     if (currentName) {
-        const primerNombre = currentName.split(' '); // Corrección para agarrar solo el primer nombre
+        // Extraemos solo el primer nombre sin comas ni espacios
+        const primerNombre = currentName.trim().split(' ');
         const btn = document.getElementById('userLoginBtn');
         if(btn) {
             btn.innerText = `👤 Hola, ${primerNombre}`;
@@ -62,25 +63,21 @@ window.openLoginModal = function() {
                 Swal.showValidationMessage('Por favor ingresa un correo electrónico válido.');
                 return false;
             }
-
             return { name: name, email: email, promo: promo };
         }
     }).then((result) => {
         if (result.isConfirmed) {
             const data = result.value;
-            const primerNombre = data.name.split(' '); // Toma solo el primer nombre
+            const primerNombre = data.name.trim().split(' ');
             
-            // Generar código aleatorio de 6 dígitos
             const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
             
-            // Guardar datos temporalmente
             localStorage.setItem("customerName", data.name);
             localStorage.setItem("customerEmail", data.email);
             localStorage.setItem("promoSubscribed", data.promo ? "true" : "false");
-            localStorage.setItem("emailVerified", "false"); // Estado inicial
+            localStorage.setItem("emailVerified", "false"); 
             localStorage.setItem("verifyCode", codigoVerificacion); 
 
-            // Actualizar botón UI
             const btn = document.getElementById('userLoginBtn');
             if(btn) {
                 btn.innerText = `👤 Hola, ${primerNombre}`;
@@ -88,20 +85,22 @@ window.openLoginModal = function() {
                 btn.style.color = "#333";
             }
 
-            // Enviar Correo de Verificación vía EmailJS
-            emailjs.send("TU_SERVICE_ID", "TU_TEMPLATE_ID_VERIFICACION", {
-                to_name: primerNombre,
-                to_email: data.email,
-                verification_code: codigoVerificacion
-            }).then(function() {
-                console.log('Correo enviado!');
-            }, function(error) {
-                console.log('Error enviando correo...', error);
-            });
+            // Enviar Correo con EmailJS
+            if(window.emailjs) {
+                emailjs.send("TU_SERVICE_ID_AQUI", "TU_TEMPLATE_ID_VERIFICACION_AQUI", {
+                    to_name: primerNombre,
+                    to_email: data.email,
+                    verification_code: codigoVerificacion
+                }).then(function() {
+                    console.log('Correo de verificación enviado!');
+                }, function(error) {
+                    console.error('Error enviando correo:', error);
+                });
+            }
 
-            // Solicitar el número de teléfono inmediatamente después del registro
+            // Pedir Teléfono después
             Swal.fire({
-                title: '¡Casi listo, ' + primerNombre + '!',
+                title: `¡Casi listo, ${primerNombre}!`,
                 text: 'Para entregar tus pedidos a domicilio necesitamos un número de WhatsApp.',
                 icon: 'info',
                 input: 'tel',
@@ -116,13 +115,12 @@ window.openLoginModal = function() {
                 if (phoneResult.isConfirmed) {
                     localStorage.setItem("customerPhone", phoneResult.value);
                     
-                    // Notificación emergente (Toast) final
                     Swal.fire({
                         toast: true,
                         position: 'bottom-start',
                         icon: 'success',
                         title: '¡Registro exitoso!',
-                        text: 'Revisa tu correo para verificar tu cuenta y poder ganar puntos.',
+                        text: 'Revisa tu correo para verificar tu cuenta y ganar puntos.',
                         showConfirmButton: false,
                         timer: 6000,
                         timerProgressBar: true
