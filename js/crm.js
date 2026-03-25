@@ -1,88 +1,112 @@
 // ==========================================
-// MÓDULO CRM - GESTIÓN DE CLIENTES Y DATOS
+// MÓDULO CRM - SISTEMA DE LOGIN MANUAL
 // ==========================================
 
-// ------------------------------------------
-// 1. LOGIN CON GOOGLE (Fijado al window)
-// ------------------------------------------
-window.handleCredentialResponse = function(response) {
-    try {
-        const data = window.parseJwt(response.credential);
-        
-        if (!data || !data.email) {
-            console.error("No se pudo obtener la información del usuario.");
-            return;
+// Al cargar la página, verificamos si ya hay un usuario logueado
+window.addEventListener('DOMContentLoaded', () => {
+    const currentName = localStorage.getItem("customerName");
+    if (currentName) {
+        // Extraemos solo el primer nombre
+        const primerNombre = currentName.split(' ');
+        const btn = document.getElementById('userLoginBtn');
+        if(btn) {
+            btn.innerText = `👤 Hola, ${primerNombre}`;
+            btn.style.background = "#f0ad4e"; // Lo ponemos naranja para indicar que ya inició
+            btn.style.color = "#333";
         }
-
-        // Guardar datos básicos en LocalStorage
-        localStorage.setItem("customerName", data.name);
-        localStorage.setItem("customerEmail", data.email);
-
-        // Actualizar la UI
-        const userInfoDiv = document.getElementById("userInfo");
-        if(userInfoDiv) userInfoDiv.innerHTML = "👤 " + data.name;
-        
-        const signInDiv = document.querySelector(".g_id_signin");
-        if(signInDiv) signInDiv.style.display = "none";
-        
         window.showRecommended();
+    }
+});
 
-        // LÓGICA DE BIENVENIDA Y TELÉFONO
-        let phone = localStorage.getItem("customerPhone");
-        
-        let primerNombre = data.name;
-        if(data.name.indexOf(' ') > -1) {
-            primerNombre = data.name.substring(0, data.name.indexOf(' '));
+// ------------------------------------------
+// 1. FORMULARIO DE REGISTRO / LOGIN
+// ------------------------------------------
+window.openLoginModal = function() {
+    const currentEmail = localStorage.getItem("customerEmail");
+    
+    // Si ya inició sesión, lo mandamos a su perfil directamente
+    if (currentEmail) {
+        window.location.href = 'perfil.html';
+        return;
+    }
+
+    // Modal de Registro con SweetAlert2
+    Swal.fire({
+        title: '¡Bienvenido a La Rana! 🐸',
+        html: `
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="font-weight: bold; color: #333;">Nombre completo:</label>
+                <input type="text" id="swal-input-name" class="swal2-input" placeholder="Ej: Juan Pérez" style="margin-top: 5px; width: 85%;">
+            </div>
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="font-weight: bold; color: #333;">Correo electrónico:</label>
+                <input type="email" id="swal-input-email" class="swal2-input" placeholder="Ej: juan@correo.com" style="margin-top: 5px; width: 85%;">
+            </div>
+            <div style="text-align: left; margin-top: 20px; padding: 0 10px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="swal-input-promo" style="width: 20px; height: 20px;" checked>
+                    <span style="font-size: 0.9em; color: #555;">Quiero unirme a <b>Taqui-Puntos</b> y recibir cupones de descuento.</span>
+                </label>
+            </div>
+        `,
+        confirmButtonText: 'Registrarme 🚀',
+        confirmButtonColor: '#f5576c', // Color naranja/rojizo de tu paleta
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const name = document.getElementById('swal-input-name').value;
+            const email = document.getElementById('swal-input-email').value;
+            const promo = document.getElementById('swal-input-promo').checked;
+
+            // Validaciones básicas
+            if (!name || !email) {
+                Swal.showValidationMessage('Por favor completa todos los campos.');
+                return false;
+            }
+            if (!/\S+@\S+\.\S+/.test(email)) {
+                Swal.showValidationMessage('Por favor ingresa un correo electrónico válido.');
+                return false;
+            }
+
+            return { name: name, email: email, promo: promo };
         }
-        
-        if (!phone) {
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const data = result.value;
+            const primerNombre = data.name.split(' ');
+            
+            // Guardar en LocalStorage
+            localStorage.setItem("customerName", data.name);
+            localStorage.setItem("customerEmail", data.email);
+            localStorage.setItem("promoSubscribed", data.promo ? "true" : "false");
+            
+            // Actualizar el botón superior
+            const btn = document.getElementById('userLoginBtn');
+            if(btn) {
+                btn.innerText = `👤 Hola, ${primerNombre}`;
+                btn.style.background = "#f0ad4e";
+                btn.style.color = "#333";
+            }
+
+            // Notificación emergente (Toast) abajo a la izquierda
             Swal.fire({
-                title: `¡Bienvenido a La Rana, ${primerNombre}! 🐸`,
-                text: 'Para poder realizar pedidos en línea y ganar Taqui-Puntos, necesitamos un número de WhatsApp.',
-                icon: 'info',
-                input: 'tel',
-                inputPlaceholder: 'Ej: 9611234567',
-                confirmButtonText: 'Guardar Teléfono',
-                confirmButtonColor: '#267d46',
-                allowOutsideClick: false,
-                inputValidator: (value) => {
-                    if (!value) return '¡Necesitamos tu número para entregar tus tacos!';
-                }
-            }).then((result) => {
-                if (result.isConfirmed && result.value) {
-                    localStorage.setItem("customerPhone", result.value);
-                    Swal.fire('¡Excelente!', 'Perfil completado. Ya puedes hacer tu pedido.', 'success');
-                }
-            });
-        } else {
-            Swal.fire({
-                title: `¡Hola de nuevo, ${primerNombre}!`,
                 toast: true,
-                position: 'top-end',
+                position: 'bottom-start', // Esquina inferior izquierda
+                icon: 'success',
+                title: `¡Registro exitoso, ${primerNombre}!`,
+                text: 'Te hemos enviado un código de confirmación a tu correo (Próximamente).',
                 showConfirmButton: false,
-                timer: 3000,
-                icon: 'success'
+                timer: 5000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
             });
+            
+            window.showRecommended();
         }
-    } catch (error) {
-        console.error("Error al procesar el login de Google:", error);
-    }
-};
-
-// Decodificador del Token
-window.parseJwt = function(token) {
-    try {
-        var base64Url = token.split('.');
-        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        console.error("Fallo al decodificar el token JWT:", e);
-        return null;
-    }
+    });
 };
 
 // ------------------------------------------
@@ -114,23 +138,4 @@ window.showRecommended = function() {
             </button>
         </div>
     `;
-};
-
-// ------------------------------------------
-// 3. SUSCRIPCIÓN A CORREOS
-// ------------------------------------------
-window.togglePromoEmails = function() {
-    const email = localStorage.getItem("customerEmail");
-    if(!email) {
-        alert("Primero debes iniciar sesión con Google para suscribirte.");
-        return;
-    }
-    const isSubscribed = localStorage.getItem("promoSubscribed") === "true";
-    if(isSubscribed) {
-        localStorage.setItem("promoSubscribed", "false");
-        alert("Te has dado de baja de las promociones. 😔");
-    } else {
-        localStorage.setItem("promoSubscribed", "true");
-        alert("¡Genial! Recibirás nuestras mejores taquizas en: " + email);
-    }
 };
