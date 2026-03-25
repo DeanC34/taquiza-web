@@ -255,7 +255,7 @@
                 
                 // Enviar Factura por EmailJS
                 const primerNombre = nombre.split(' ');
-                emailjs.send("TU_SERVICE_ID_AQUI", "TU_TEMPLATE_ID_FACTURA_AQUI", {
+                emailjs.send("service_taquizalarana", "template_s700zhs", {
                     to_name: primerNombre,
                     to_email: email,
                     order_date: fechaActual,

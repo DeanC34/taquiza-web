@@ -253,7 +253,7 @@ function pedirTelefonoObligatorio(primerNombre) {
 function enviarCodigoPorCorreo(nombre, correo, codigo) {
     if(window.emailjs) {
         // Asegúrate de poner tus IDs reales aquí
-        emailjs.send("TU_SERVICE_ID", "TU_TEMPLATE_ID", {
+        emailjs.send("service_taquizalarana", "template_kp9868k", {
             to_name: nombre,
             to_email: correo,
             verification_code: codigo
