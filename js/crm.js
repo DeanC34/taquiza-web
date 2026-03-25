@@ -2,25 +2,12 @@
 // MÓDULO CRM - SISTEMA DE LOGIN MANUAL AVANZADO
 // ==========================================
 
-// Importamos Firebase correctamente para un módulo
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
-    authDomain: "taquiza-web.firebaseapp.com",
-    projectId: "taquiza-web",
-    storageBucket: "taquiza-web.firebasestorage.app",
-    messagingSenderId: "475601236604",
-    appId: "1:475601236604:web:775b368768e9822789cff9"
-};
-
-// Evitamos inicializar Firebase dos veces en la misma página
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+window.addEventListener('DOMContentLoaded', () => {
+    verificarSesionActiva();
+});
 
 // Función para revisar si hay alguien logueado
-window.verificarSesionActiva = function() {
+function verificarSesionActiva() {
     const currentName = localStorage.getItem("customerName");
     const isVerified = localStorage.getItem("emailVerified") === "true";
 
@@ -28,13 +15,14 @@ window.verificarSesionActiva = function() {
     const btnLogout = document.getElementById('userLogoutBtn');
 
     if (currentName && isVerified) {
-        // CORRECCIÓN: Agregamos para sacar solo el primer nombre, evitando las comas
+        // Obtenemos el primer nombre (soluciona el problema de "Angel,Soto")
         const primerNombre = currentName.trim().split(' ');
         
         if (btnLogin) {
             btnLogin.innerText = `👤 Hola, ${primerNombre}`;
             btnLogin.style.background = "#f0ad4e";
             btnLogin.style.color = "#333";
+            // Al darle click ahora lo mandará al perfil
             btnLogin.setAttribute('onclick', "window.location.href='perfil.html'");
         }
         if (btnLogout) {
@@ -52,10 +40,7 @@ window.verificarSesionActiva = function() {
             btnLogout.style.display = "none";
         }
     }
-};
-
-// Ejecutamos la verificación al cargar el módulo
-window.verificarSesionActiva();
+}
 
 // ------------------------------------------
 // 1. GESTIÓN DE ACCESO (LOGIN / REGISTRO)
@@ -158,19 +143,21 @@ window.openLoginModal = function() {
     });
 };
 
-window.procesarRegistro = function(data, codigo) {
-    // CORRECCIÓN: Agregamos para aislar el primer nombre sin comas
+function procesarRegistro(data, codigo) {
     const primerNombre = data.name.trim().split(' ');
     
+    // Guardamos los datos de la "cuenta" localmente
     localStorage.setItem("customerName", data.name);
     localStorage.setItem("customerEmail", data.email);
-    if(data.pass) localStorage.setItem("customerPass", data.pass);
+    if(data.pass) localStorage.setItem("customerPass", data.pass); // Guardamos la contraseña (Si la puso)
     localStorage.setItem("promoSubscribed", data.promo ? "true" : "false");
     
+    // Lo marcamos como no verificado aún
     localStorage.setItem("emailVerified", "false"); 
     localStorage.setItem("verifyCode", codigo); 
 
-    window.enviarCodigoPorCorreo(primerNombre, data.email, codigo);
+    // Enviamos el código a su correo para que se verifique
+    enviarCodigoPorCorreo(primerNombre, data.email, codigo);
 
     Swal.fire({
         title: 'Verifica tu cuenta 📧',
@@ -186,85 +173,63 @@ window.procesarRegistro = function(data, codigo) {
     }).then((result) => {
         if (result.isConfirmed && result.value === codigo) {
             localStorage.setItem("emailVerified", "true");
-            window.verificarSesionActiva();
-            window.pedirTelefonoObligatorio(primerNombre);
+            verificarSesionActiva();
+            pedirTelefonoObligatorio(primerNombre);
         } else {
             Swal.fire('Error', 'Código incorrecto. Intenta registrarte nuevamente.', 'error');
         }
     });
-};
+}
 
-// Nueva función robusta para procesar el login
-window.procesarLogin = async function(data, codigoTemporal) {
-    const email = data.email;
-    let savedName = localStorage.getItem("customerName");
-    let primerNombre = "Usuario";
+function procesarLogin(data, codigoTemporal) {
+    const savedEmail = localStorage.getItem("customerEmail");
+    const savedPass = localStorage.getItem("customerPass");
+    const savedName = localStorage.getItem("customerName") || "Usuario";
+    const primerNombre = savedName.trim().split(' ');
 
-    Swal.fire({
-        title: 'Buscando cuenta...',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-    });
-
-    try {
-        const clienteRef = doc(db, "clientes", email);
-        const clienteSnap = await getDoc(clienteRef);
-
-        if (clienteSnap.exists()) {
-            const dbData = clienteSnap.data();
-            savedName = dbData.nombre; 
-            // CORRECCIÓN: Agregamos
-            primerNombre = savedName.trim().split(' ');
-            
-            localStorage.setItem("customerName", savedName);
-            localStorage.setItem("customerEmail", email);
-            if (dbData.telefono) localStorage.setItem("customerPhone", dbData.telefono);
-
-            Swal.close(); 
-            
-            if (data.pass) {
-                const savedPass = localStorage.getItem("customerPass");
-                if (data.pass === savedPass) {
-                    localStorage.setItem("emailVerified", "true");
-                    window.verificarSesionActiva();
-                    window.mostrarToastExito('¡Acceso concedido!', `Bienvenido de vuelta, ${primerNombre}.`);
-                } else {
-                    Swal.fire('Error', 'Contraseña incorrecta.', 'error');
-                }
-            } 
-            else {
-                localStorage.setItem("verifyCode", codigoTemporal); 
-                window.enviarCodigoPorCorreo(primerNombre, email, codigoTemporal);
-
-                Swal.fire({
-                    title: 'Código Enviado 📧',
-                    text: 'Revisa tu correo e ingresa el código de acceso.',
-                    input: 'text',
-                    inputPlaceholder: '123456',
-                    confirmButtonText: 'Verificar',
-                    confirmButtonColor: '#267d46',
-                    showCancelButton: true
-                }).then((result) => {
-                    if (result.isConfirmed && result.value === codigoTemporal) {
-                        localStorage.setItem("emailVerified", "true");
-                        window.verificarSesionActiva();
-                        window.mostrarToastExito('¡Acceso concedido!', `Bienvenido de vuelta, ${primerNombre}.`);
-                    } else {
-                        Swal.fire('Error', 'Código incorrecto.', 'error');
-                    }
-                });
-            }
-
-        } else {
-            Swal.fire('Cuenta no encontrada', `El correo ${email} no está registrado. Por favor crea una cuenta nueva.`, 'warning');
-        }
-    } catch (error) {
-        console.error("Error al buscar cuenta:", error);
-        Swal.fire('Error', 'Hubo un problema al buscar tu cuenta.', 'error');
+    // Validación básica: ¿El correo coincide con el registrado en esta compu?
+    // (En un entorno real, esto lo validaría Firebase)
+    if (data.email !== savedEmail) {
+        Swal.fire('Error', 'No encontramos una cuenta con ese correo en este dispositivo. Regístrate primero.', 'error');
+        return;
     }
-};
 
-window.pedirTelefonoObligatorio = function(primerNombre) {
+    // Flujo 1: Acceso con contraseña
+    if (data.pass) {
+        if (data.pass === savedPass) {
+            localStorage.setItem("emailVerified", "true");
+            verificarSesionActiva();
+            mostrarToastExito('¡Acceso concedido!', `Bienvenido de vuelta, ${primerNombre}.`);
+        } else {
+            Swal.fire('Error', 'Contraseña incorrecta.', 'error');
+        }
+    } 
+    // Flujo 2: Acceso por código (Passwordless)
+    else {
+        localStorage.setItem("verifyCode", codigoTemporal); 
+        enviarCodigoPorCorreo(primerNombre, data.email, codigoTemporal);
+
+        Swal.fire({
+            title: 'Código Enviado 📧',
+            text: 'Revisa tu correo e ingresa el código de acceso.',
+            input: 'text',
+            inputPlaceholder: '123456',
+            confirmButtonText: 'Verificar',
+            confirmButtonColor: '#267d46',
+            showCancelButton: true
+        }).then((result) => {
+            if (result.isConfirmed && result.value === codigoTemporal) {
+                localStorage.setItem("emailVerified", "true");
+                verificarSesionActiva();
+                mostrarToastExito('¡Acceso concedido!', `Bienvenido de vuelta, ${primerNombre}.`);
+            } else {
+                Swal.fire('Error', 'Código incorrecto.', 'error');
+            }
+        });
+    }
+}
+
+function pedirTelefonoObligatorio(primerNombre) {
     Swal.fire({
         title: `¡Felicidades, ${primerNombre}! 🎉`,
         text: 'Para entregar tus pedidos a domicilio necesitamos un número de WhatsApp.',
@@ -280,25 +245,26 @@ window.pedirTelefonoObligatorio = function(primerNombre) {
     }).then((phoneResult) => {
         if (phoneResult.isConfirmed) {
             localStorage.setItem("customerPhone", phoneResult.value);
-            window.mostrarToastExito('¡Perfil completado!', 'Ya puedes pedir y ganar Taqui-Puntos.');
+            mostrarToastExito('¡Perfil completado!', 'Ya puedes pedir y ganar Taqui-Puntos.');
         }
     });
-};
+}
 
-window.enviarCodigoPorCorreo = function(nombre, correo, codigo) {
+function enviarCodigoPorCorreo(nombre, correo, codigo) {
     if(window.emailjs) {
-        emailjs.send("service_taquizalarana", "template_kp9868k", {
+        // Asegúrate de poner tus IDs reales aquí
+        emailjs.send("TU_SERVICE_ID", "TU_TEMPLATE_ID", {
             to_name: nombre,
             to_email: correo,
             verification_code: codigo
         }).then(() => console.log('Correo enviado!'), (e) => console.error('Error:', e));
     }
-};
+}
 
 window.cerrarSesion = function() {
     Swal.fire({
         title: '¿Cerrar Sesión?',
-        text: "Tendrás que volver a ingresar para hacer pedidos o usar puntos.",
+        text: "Tendrás que volver a ingresar para usar tus puntos.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -306,25 +272,15 @@ window.cerrarSesion = function() {
         confirmButtonText: 'Sí, salir'
     }).then((result) => {
         if (result.isConfirmed) {
-            localStorage.removeItem("customerName");
-            localStorage.removeItem("customerEmail");
-            localStorage.removeItem("customerPhone");
-            localStorage.removeItem("promoSubscribed");
-            localStorage.removeItem("emailVerified");
-            localStorage.removeItem("verifyCode");
-            localStorage.removeItem("customerPass");
-            
-            window.verificarSesionActiva(); 
-            window.mostrarToastExito('Sesión cerrada', 'Vuelve pronto.');
-            
-            if(window.location.pathname.includes("perfil.html")) {
-                window.location.href = "index.html";
-            }
+            // "Cerramos la sesión" quitando la bandera de verificación
+            localStorage.setItem("emailVerified", "false");
+            verificarSesionActiva();
+            mostrarToastExito('Sesión cerrada', 'Vuelve pronto.');
         }
     });
 };
 
-window.mostrarToastExito = function(titulo, texto) {
+function mostrarToastExito(titulo, texto) {
     Swal.fire({
         toast: true,
         position: 'bottom-start',
@@ -335,7 +291,7 @@ window.mostrarToastExito = function(titulo, texto) {
         timer: 4000,
         timerProgressBar: true
     });
-};
+}
 
 // ------------------------------------------
 // 2. HISTORIAL DE PEDIDOS (Recomendador)
