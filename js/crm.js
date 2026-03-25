@@ -2,16 +2,14 @@
 // MÓDULO CRM - SISTEMA DE LOGIN MANUAL
 // ==========================================
 
-// Al cargar la página, verificamos si ya hay un usuario logueado
 window.addEventListener('DOMContentLoaded', () => {
     const currentName = localStorage.getItem("customerName");
     if (currentName) {
-        // Extraemos solo el primer nombre
-        const primerNombre = currentName.split(' ');
+        const primerNombre = currentName.split(' '); // Corrección para agarrar solo el primer nombre
         const btn = document.getElementById('userLoginBtn');
         if(btn) {
             btn.innerText = `👤 Hola, ${primerNombre}`;
-            btn.style.background = "#f0ad4e"; // Lo ponemos naranja para indicar que ya inició
+            btn.style.background = "#f0ad4e";
             btn.style.color = "#333";
         }
         window.showRecommended();
@@ -24,18 +22,16 @@ window.addEventListener('DOMContentLoaded', () => {
 window.openLoginModal = function() {
     const currentEmail = localStorage.getItem("customerEmail");
     
-    // Si ya inició sesión, lo mandamos a su perfil directamente
     if (currentEmail) {
         window.location.href = 'perfil.html';
         return;
     }
 
-    // Modal de Registro con SweetAlert2
     Swal.fire({
         title: '¡Bienvenido a La Rana! 🐸',
         html: `
             <div style="text-align: left; margin-bottom: 15px;">
-                <label style="font-weight: bold; color: #333;">Nombre completo:</label>
+                <label style="font-weight: bold; color: #333;">Nombre de usuario:</label>
                 <input type="text" id="swal-input-name" class="swal2-input" placeholder="Ej: Juan Pérez" style="margin-top: 5px; width: 85%;">
             </div>
             <div style="text-align: left; margin-bottom: 15px;">
@@ -45,12 +41,12 @@ window.openLoginModal = function() {
             <div style="text-align: left; margin-top: 20px; padding: 0 10px;">
                 <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                     <input type="checkbox" id="swal-input-promo" style="width: 20px; height: 20px;" checked>
-                    <span style="font-size: 0.9em; color: #555;">Quiero unirme a <b>Taqui-Puntos</b> y recibir cupones de descuento.</span>
+                    <span style="font-size: 0.9em; color: #555;">Quiero unirme a <b>Taqui-Puntos</b> y recibir cupones.</span>
                 </label>
             </div>
         `,
-        confirmButtonText: 'Registrarme 🚀',
-        confirmButtonColor: '#f5576c', // Color naranja/rojizo de tu paleta
+        confirmButtonText: 'Siguiente 🚀',
+        confirmButtonColor: '#f5576c',
         showCancelButton: true,
         cancelButtonText: 'Cancelar',
         preConfirm: () => {
@@ -58,7 +54,6 @@ window.openLoginModal = function() {
             const email = document.getElementById('swal-input-email').value;
             const promo = document.getElementById('swal-input-promo').checked;
 
-            // Validaciones básicas
             if (!name || !email) {
                 Swal.showValidationMessage('Por favor completa todos los campos.');
                 return false;
@@ -73,14 +68,19 @@ window.openLoginModal = function() {
     }).then((result) => {
         if (result.isConfirmed) {
             const data = result.value;
-            const primerNombre = data.name.split(' ');
+            const primerNombre = data.name.split(' '); // Toma solo el primer nombre
             
-            // Guardar en LocalStorage
+            // Generar código aleatorio de 6 dígitos
+            const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // Guardar datos temporalmente
             localStorage.setItem("customerName", data.name);
             localStorage.setItem("customerEmail", data.email);
             localStorage.setItem("promoSubscribed", data.promo ? "true" : "false");
-            
-            // Actualizar el botón superior
+            localStorage.setItem("emailVerified", "false"); // Estado inicial
+            localStorage.setItem("verifyCode", codigoVerificacion); 
+
+            // Actualizar botón UI
             const btn = document.getElementById('userLoginBtn');
             if(btn) {
                 btn.innerText = `👤 Hola, ${primerNombre}`;
@@ -88,23 +88,49 @@ window.openLoginModal = function() {
                 btn.style.color = "#333";
             }
 
-            // Notificación emergente (Toast) abajo a la izquierda
+            // Enviar Correo de Verificación vía EmailJS
+            emailjs.send("TU_SERVICE_ID", "TU_TEMPLATE_ID_VERIFICACION", {
+                to_name: primerNombre,
+                to_email: data.email,
+                verification_code: codigoVerificacion
+            }).then(function() {
+                console.log('Correo enviado!');
+            }, function(error) {
+                console.log('Error enviando correo...', error);
+            });
+
+            // Solicitar el número de teléfono inmediatamente después del registro
             Swal.fire({
-                toast: true,
-                position: 'bottom-start', // Esquina inferior izquierda
-                icon: 'success',
-                title: `¡Registro exitoso, ${primerNombre}!`,
-                text: 'Te hemos enviado un código de confirmación a tu correo (Próximamente).',
-                showConfirmButton: false,
-                timer: 5000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer);
-                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                title: '¡Casi listo, ' + primerNombre + '!',
+                text: 'Para entregar tus pedidos a domicilio necesitamos un número de WhatsApp.',
+                icon: 'info',
+                input: 'tel',
+                inputPlaceholder: 'Ej: 9611234567',
+                confirmButtonText: 'Guardar y Finalizar',
+                confirmButtonColor: '#267d46',
+                allowOutsideClick: false,
+                inputValidator: (value) => {
+                    if (!value) return '¡Necesitamos tu número!';
+                }
+            }).then((phoneResult) => {
+                if (phoneResult.isConfirmed) {
+                    localStorage.setItem("customerPhone", phoneResult.value);
+                    
+                    // Notificación emergente (Toast) final
+                    Swal.fire({
+                        toast: true,
+                        position: 'bottom-start',
+                        icon: 'success',
+                        title: '¡Registro exitoso!',
+                        text: 'Revisa tu correo para verificar tu cuenta y poder ganar puntos.',
+                        showConfirmButton: false,
+                        timer: 6000,
+                        timerProgressBar: true
+                    });
+                    
+                    window.showRecommended();
                 }
             });
-            
-            window.showRecommended();
         }
     });
 };

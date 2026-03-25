@@ -4,32 +4,40 @@
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>Menú Digital - Taquiza La Rana</title>
     
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <script src="js/crm.js?v=6"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            // Inicializar EmailJS con tu Public Key (Te diré cómo obtenerla)
+            emailjs.init({
+              publicKey: "TU_PUBLIC_KEY_AQUI",
+            });
+        })();
+    </script>
+    
+    <script src="js/crm.js?v=7"></script>
 </head>
 
 <body>
-
-    <div class="menu-dropdown">
-        <button onclick="toggleMenu()" class="menu-btn">
-            ☰
-        </button>
-        <div id="dropdownMenu" class="dropdown-content">
-            <button onclick="goToProfile()">👤 Perfil</button>
-            <button onclick="goToSettings()">⚙️ Ajustes</button>
-            <button onclick="goToAdmin()">🛠️ Administrador</button>
+    <div class="top-menu-bar">
+        <div class="menu-dropdown">
+            <button onclick="toggleMenu()" class="menu-btn">☰</button>
+            <div id="dropdownMenu" class="dropdown-content">
+                <button onclick="goToProfile()">👤 Perfil</button>
+                <button onclick="goToSettings()">⚙️ Ajustes</button>
+                <button onclick="goToAdmin()">🛠️ Administrador</button>
+            </div>
         </div>
-    </div>
 
-    <div class="user-dropdown" style="position: fixed; top: 20px; right: 20px; z-index: 3000;">
-        <button onclick="openLoginModal()" class="menu-btn" id="userLoginBtn" style="background: #267d46;">
-            👤 Acceder
-        </button>
+        <div class="user-dropdown">
+            <button onclick="openLoginModal()" class="menu-btn" id="userLoginBtn" style="background: #267d46;">
+                👤 Acceder
+            </button>
+        </div>
     </div>
 
     <div class="container">
@@ -40,17 +48,13 @@
         </div>
 
         <div class="search-container">
-            <input type="text" 
-                   id="searchInput" 
-                   placeholder="🔎 Buscar..." 
-                   onkeyup="searchProducts()">
+            <input type="text" id="searchInput" placeholder="🔎 Buscar..." onkeyup="searchProducts()">
         </div>
 
         <div class="menu-container">
             <div class="category">
                 <h2 class="category-title">⭐ Recomendados para ti</h2>
-                <div class="products" id="recommendedProducts">
-                </div>
+                <div class="products" id="recommendedProducts"></div>
             </div>
 
             <div class="category">
@@ -163,8 +167,23 @@
         window.guardarPedidoEnCRM = async (carritoTerminado, totalPagado) => {
             const email = localStorage.getItem("customerEmail");
             const nombre = localStorage.getItem("customerName");
+            const estaVerificado = localStorage.getItem("emailVerified") === "true";
             
             if (!email) return;
+
+            // Bloqueo: No dar puntos si no ha verificado el correo (Para evitar spam)
+            if (!estaVerificado) {
+                Swal.fire({
+                    title: '¡Casi listo!',
+                    text: 'Recibimos tu pedido y ya se está cocinando. Sin embargo, para ganar Taqui-Puntos, necesitas verificar tu correo electrónico ingresando el código que te enviamos.',
+                    icon: 'warning',
+                    confirmButtonText: 'Ir a Verificar',
+                    confirmButtonColor: '#f5576c'
+                }).then(() => {
+                    window.location.href = 'perfil.html';
+                });
+                return;
+            }
 
             const clienteRef = doc(db, "clientes", email);
             
@@ -191,19 +210,26 @@
                         puntos: puntosActuales + puntosGanados,
                         historial: historialActual
                     });
-                } else {
-                    await setDoc(clienteRef, {
-                        nombre: nombre,
-                        email: email,
-                        puntos: puntosGanados,
-                        suscrito_promos: localStorage.getItem("promoSubscribed") === "true",
-                        historial: [nuevoPedido]
-                    });
                 }
                 
+                // Disparar correo de Factura/Recibo usando EmailJS
+                const primerNombre = nombre.split(' ');
+                emailjs.send("TU_SERVICE_ID", "TU_TEMPLATE_ID_FACTURA", {
+                    to_name: primerNombre,
+                    to_email: email,
+                    order_date: fechaActual,
+                    order_details: detallePedido,
+                    order_total: "$" + totalPagado + " MXN",
+                    points_earned: puntosGanados
+                }).then(function() {
+                    console.log('Factura enviada por correo!');
+                }, function(error) {
+                    console.log('Error enviando factura...', error);
+                });
+
                 Swal.fire({
                     title: '¡Pago Exitoso!',
-                    text: `¡Gracias por tu compra! Has ganado ${puntosGanados} Taqui-Puntos.`,
+                    text: `¡Gracias por tu compra! Has ganado ${puntosGanados} Taqui-Puntos. Te hemos enviado tu recibo por correo.`,
                     icon: 'success',
                     confirmButtonText: '¡Genial!',
                     confirmButtonColor: '#267d46'

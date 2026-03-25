@@ -428,3 +428,237 @@ position:static;
 margin-top:10px;
 }
 }
+
+/* =======================================
+   ESTILOS GENERALES Y FORMULARIOS (ADMIN)
+   ======================================= */
+.admin-form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+.admin-form-group {
+    margin-bottom: 20px;
+}
+
+.admin-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.admin-form-group input, 
+.admin-form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.admin-form-group input:focus {
+    border-color: #267d46;
+    outline: none;
+}
+
+.admin-submit-btn {
+    background: #267d46;
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.3s ease;
+}
+
+.admin-submit-btn:hover {
+    background: #1a5730;
+}
+
+.back-btn {
+    background: #666;
+    margin-bottom: 20px;
+}
+
+/* =======================================
+   MENÚS DESPLEGABLES (ACORDEÓN ADMIN)
+   ======================================= */
+details {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+summary {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    outline: none;
+    list-style: none;
+    padding-bottom: 10px;
+    border-bottom: 2px solid transparent; 
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+details[open] summary {
+    border-bottom: 2px solid #f5576c;
+    color: #f5576c;
+    margin-bottom: 15px;
+}
+
+details[open] .details-content {
+    animation: slideDown 0.4s ease-out forwards;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =======================================
+   LISTA DE INVENTARIO
+   ======================================= */
+.inventory-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.inventory-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 10px;
+    border-bottom: 1px solid #eee;
+    gap: 15px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.inventory-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #eee;
+    border: 1px solid #ddd;
+}
+
+.inventory-details {
+    flex-grow: 1;
+}
+
+.inventory-details h4 { margin: 0; color: #333; font-size: 1.1em; }
+.inventory-details p { margin: 4px 0 0 0; color: #666; font-size: 0.9em; font-weight: bold;}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.btn-action {
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.85em;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: scale(1.05);
+    filter: brightness(0.9);
+}
+
+.btn-edit { background: #f0ad4e; color: #333; }
+.btn-delete { background: #b63c3c; }
+
+/* =======================================
+   MODAL DE ACTUALIZACIÓN (EDITAR)
+   ======================================= */
+.edit-modal {
+    display: none; 
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 4000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.edit-modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+.edit-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.edit-modal.active .edit-content {
+    transform: translateY(0);
+}
+
+.close-edit-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #999;
+}
+
+.btn-update {
+    background: #f0ad4e;
+    color: #333;
+}
+
+/* =======================================
+   BOTONES FLOTANTES SUPERIORES
+   ======================================= */
+.top-menu-bar {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 3000;
+    pointer-events: none; /* Permite clickear el fondo verde a través del contenedor invisible */
+}
+
+.top-menu-bar > div {
+    pointer-events: auto; /* Reactiva clicks en los botones */
+}
