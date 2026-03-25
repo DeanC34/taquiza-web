@@ -708,3 +708,27 @@ details[open] .details-content {
     background: #f0f0f0;
     color: #267d46;
 }
+
+/* =======================================
+   BOTONES FLOTANTES SUPERIORES
+   ======================================= */
+.top-menu-bar {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between; /* Empuja un div a la izq y el otro a la der */
+    z-index: 3000;
+    pointer-events: none; /* Deja hacer click a través del div invisible */
+}
+
+.top-menu-bar > div {
+    pointer-events: auto; /* Reactiva el click en los botones reales */
+}
+
+/* Evitar que se posicionen de forma absoluta individualmente (quita los que tenías) */
+.menu-dropdown, .user-dropdown {
+    position: relative; /* Asegura que sigan las reglas de flexbox */
+    display: flex; /* Para poner botones de login y logout juntos */
+}

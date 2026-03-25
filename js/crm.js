@@ -1,32 +1,51 @@
 // ==========================================
-// MÓDULO CRM - SISTEMA DE LOGIN MANUAL
+// MÓDULO CRM - SISTEMA DE LOGIN MANUAL AVANZADO
 // ==========================================
 
 window.addEventListener('DOMContentLoaded', () => {
+    verificarSesionActiva();
+});
+
+// Función para revisar si hay alguien logueado
+function verificarSesionActiva() {
     const currentName = localStorage.getItem("customerName");
-    if (currentName) {
+    const isVerified = localStorage.getItem("emailVerified") === "true";
+
+    const btnLogin = document.getElementById('userLoginBtn');
+    const btnLogout = document.getElementById('userLogoutBtn');
+
+    if (currentName && isVerified) {
+        // Obtenemos el primer nombre (soluciona el problema de "Angel,Soto")
         const primerNombre = currentName.trim().split(' ');
-        const btn = document.getElementById('userLoginBtn');
-        if(btn) {
-            btn.innerText = `👤 Hola, ${primerNombre}`;
-            btn.style.background = "#f0ad4e";
-            btn.style.color = "#333";
+        
+        if (btnLogin) {
+            btnLogin.innerText = `👤 Hola, ${primerNombre}`;
+            btnLogin.style.background = "#f0ad4e";
+            btnLogin.style.color = "#333";
+            // Al darle click ahora lo mandará al perfil
+            btnLogin.setAttribute('onclick', "window.location.href='perfil.html'");
+        }
+        if (btnLogout) {
+            btnLogout.style.display = "inline-block";
         }
         window.showRecommended();
+    } else {
+        if (btnLogin) {
+            btnLogin.innerText = `👤 Acceder`;
+            btnLogin.style.background = "#267d46";
+            btnLogin.style.color = "white";
+            btnLogin.setAttribute('onclick', "openLoginModal()");
+        }
+        if (btnLogout) {
+            btnLogout.style.display = "none";
+        }
     }
-});
+}
 
 // ------------------------------------------
 // 1. GESTIÓN DE ACCESO (LOGIN / REGISTRO)
 // ------------------------------------------
 window.openLoginModal = function() {
-    const currentEmail = localStorage.getItem("customerEmail");
-    
-    if (currentEmail) {
-        window.location.href = 'perfil.html';
-        return;
-    }
-
     Swal.fire({
         title: 'Acceso a La Rana 🐸',
         html: `
@@ -35,29 +54,31 @@ window.openLoginModal = function() {
                 <button id="tab-register" style="padding: 8px 15px; border:1px solid #ccc; background:white; color:#333; border-radius:5px; cursor:pointer;">Crear Cuenta</button>
             </div>
 
-            <div id="form-register" style="display:none;">
-                <div style="text-align: left; margin-bottom: 15px;">
-                    <label style="font-weight: bold; color: #333;">Nombre de usuario:</label>
-                    <input type="text" id="reg-name" class="swal2-input" placeholder="Ej: Juan Pérez" style="margin-top: 5px; width: 85%;">
-                </div>
-                <div style="text-align: left; margin-bottom: 15px;">
-                    <label style="font-weight: bold; color: #333;">Correo electrónico:</label>
-                    <input type="email" id="reg-email" class="swal2-input" placeholder="Ej: juan@correo.com" style="margin-top: 5px; width: 85%;">
-                </div>
-                <div style="text-align: left; margin-top: 20px; padding: 0 10px;">
+            <div id="form-register" style="display:none; text-align:left;">
+                <label style="font-weight: bold; color: #333;">Nombre completo:</label>
+                <input type="text" id="reg-name" class="swal2-input" placeholder="Ej: Juan Pérez" style="margin-top: 5px; width: 85%;">
+                
+                <label style="font-weight: bold; color: #333; margin-top: 15px; display:block;">Correo electrónico:</label>
+                <input type="email" id="reg-email" class="swal2-input" placeholder="Ej: juan@correo.com" style="margin-top: 5px; width: 85%;">
+
+                <label style="font-weight: bold; color: #333; margin-top: 15px; display:block;">Contraseña (Opcional):</label>
+                <input type="password" id="reg-pass" class="swal2-input" placeholder="Para acceso rápido" style="margin-top: 5px; width: 85%;">
+                <small style="color:#666; display:block; margin-top:5px;">Si dejas esto en blanco, accederás mediante códigos a tu correo.</small>
+
+                <div style="margin-top: 20px;">
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                         <input type="checkbox" id="reg-promo" style="width: 20px; height: 20px;" checked>
-                        <span style="font-size: 0.9em; color: #555;">Quiero unirme a <b>Taqui-Puntos</b> y recibir cupones.</span>
+                        <span style="font-size: 0.9em; color: #555;">Unirme a <b>Taqui-Puntos</b> y recibir cupones.</span>
                     </label>
                 </div>
             </div>
 
-            <div id="form-login">
-                <p style="font-size:0.9em; color:#666; margin-bottom:15px;">Ingresa tu correo para recibir un código de acceso.</p>
-                <div style="text-align: left; margin-bottom: 15px;">
-                    <label style="font-weight: bold; color: #333;">Correo electrónico:</label>
-                    <input type="email" id="login-email" class="swal2-input" placeholder="Ej: juan@correo.com" style="margin-top: 5px; width: 85%;">
-                </div>
+            <div id="form-login" style="text-align:left;">
+                <label style="font-weight: bold; color: #333;">Correo electrónico:</label>
+                <input type="email" id="login-email" class="swal2-input" placeholder="Ej: juan@correo.com" style="margin-top: 5px; width: 85%;">
+                
+                <label style="font-weight: bold; color: #333; margin-top: 15px; display:block;">Contraseña:</label>
+                <input type="password" id="login-pass" class="swal2-input" placeholder="Déjalo en blanco para usar código de correo" style="margin-top: 5px; width: 85%;">
             </div>
         `,
         confirmButtonText: 'Continuar 🚀',
@@ -70,7 +91,6 @@ window.openLoginModal = function() {
             const formLogin = document.getElementById('form-login');
             const formRegister = document.getElementById('form-register');
 
-            // Lógica de pestañas
             tabLogin.onclick = () => {
                 tabLogin.style.background = "#267d46"; tabLogin.style.color = "white"; tabLogin.style.border = "none";
                 tabRegister.style.background = "white"; tabRegister.style.color = "#333"; tabRegister.style.border = "1px solid #ccc";
@@ -89,35 +109,35 @@ window.openLoginModal = function() {
             
             if (isLogin) {
                 const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-pass').value;
                 if (!/\S+@\S+\.\S+/.test(email)) {
-                    Swal.showValidationMessage('Por favor ingresa un correo válido.');
-                    return false;
+                    Swal.showValidationMessage('Ingresa un correo válido.'); return false;
                 }
-                return { mode: 'login', email: email };
+                return { mode: 'login', email: email, pass: pass };
             } else {
                 const name = document.getElementById('reg-name').value;
                 const email = document.getElementById('reg-email').value;
+                const pass = document.getElementById('reg-pass').value;
                 const promo = document.getElementById('reg-promo').checked;
+                
                 if (!name || !email) {
-                    Swal.showValidationMessage('Por favor completa todos los campos.');
-                    return false;
+                    Swal.showValidationMessage('Nombre y correo son obligatorios.'); return false;
                 }
                 if (!/\S+@\S+\.\S+/.test(email)) {
-                    Swal.showValidationMessage('Por favor ingresa un correo válido.');
-                    return false;
+                    Swal.showValidationMessage('Ingresa un correo válido.'); return false;
                 }
-                return { mode: 'register', name: name, email: email, promo: promo };
+                return { mode: 'register', name: name, email: email, pass: pass, promo: promo };
             }
         }
     }).then((result) => {
         if (result.isConfirmed) {
             const data = result.value;
-            const codigoAcceso = Math.floor(100000 + Math.random() * 900000).toString();
+            const codigoAleatorio = Math.floor(100000 + Math.random() * 900000).toString();
 
             if (data.mode === 'register') {
-                procesarRegistro(data, codigoAcceso);
+                procesarRegistro(data, codigoAleatorio);
             } else {
-                procesarLogin(data.email, codigoAcceso);
+                procesarLogin(data, codigoAleatorio);
             }
         }
     });
@@ -126,17 +146,92 @@ window.openLoginModal = function() {
 function procesarRegistro(data, codigo) {
     const primerNombre = data.name.trim().split(' ');
     
+    // Guardamos los datos de la "cuenta" localmente
     localStorage.setItem("customerName", data.name);
     localStorage.setItem("customerEmail", data.email);
+    if(data.pass) localStorage.setItem("customerPass", data.pass); // Guardamos la contraseña (Si la puso)
     localStorage.setItem("promoSubscribed", data.promo ? "true" : "false");
+    
+    // Lo marcamos como no verificado aún
     localStorage.setItem("emailVerified", "false"); 
     localStorage.setItem("verifyCode", codigo); 
 
-    actualizarBotonMenu(primerNombre);
+    // Enviamos el código a su correo para que se verifique
     enviarCodigoPorCorreo(primerNombre, data.email, codigo);
 
     Swal.fire({
-        title: `¡Casi listo, ${primerNombre}!`,
+        title: 'Verifica tu cuenta 📧',
+        text: `Hola ${primerNombre}, hemos enviado un código a ${data.email}. Ingrésalo para finalizar tu registro.`,
+        input: 'text',
+        inputPlaceholder: '123456',
+        confirmButtonText: 'Verificar y Continuar',
+        confirmButtonColor: '#267d46',
+        allowOutsideClick: false,
+        inputValidator: (value) => {
+            if (!value) return 'Necesitas ingresar el código';
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value === codigo) {
+            localStorage.setItem("emailVerified", "true");
+            verificarSesionActiva();
+            pedirTelefonoObligatorio(primerNombre);
+        } else {
+            Swal.fire('Error', 'Código incorrecto. Intenta registrarte nuevamente.', 'error');
+        }
+    });
+}
+
+function procesarLogin(data, codigoTemporal) {
+    const savedEmail = localStorage.getItem("customerEmail");
+    const savedPass = localStorage.getItem("customerPass");
+    const savedName = localStorage.getItem("customerName") || "Usuario";
+    const primerNombre = savedName.trim().split(' ');
+
+    // Validación básica: ¿El correo coincide con el registrado en esta compu?
+    // (En un entorno real, esto lo validaría Firebase)
+    if (data.email !== savedEmail) {
+        Swal.fire('Error', 'No encontramos una cuenta con ese correo en este dispositivo. Regístrate primero.', 'error');
+        return;
+    }
+
+    // Flujo 1: Acceso con contraseña
+    if (data.pass) {
+        if (data.pass === savedPass) {
+            localStorage.setItem("emailVerified", "true");
+            verificarSesionActiva();
+            mostrarToastExito('¡Acceso concedido!', `Bienvenido de vuelta, ${primerNombre}.`);
+        } else {
+            Swal.fire('Error', 'Contraseña incorrecta.', 'error');
+        }
+    } 
+    // Flujo 2: Acceso por código (Passwordless)
+    else {
+        localStorage.setItem("verifyCode", codigoTemporal); 
+        enviarCodigoPorCorreo(primerNombre, data.email, codigoTemporal);
+
+        Swal.fire({
+            title: 'Código Enviado 📧',
+            text: 'Revisa tu correo e ingresa el código de acceso.',
+            input: 'text',
+            inputPlaceholder: '123456',
+            confirmButtonText: 'Verificar',
+            confirmButtonColor: '#267d46',
+            showCancelButton: true
+        }).then((result) => {
+            if (result.isConfirmed && result.value === codigoTemporal) {
+                localStorage.setItem("emailVerified", "true");
+                verificarSesionActiva();
+                mostrarToastExito('¡Acceso concedido!', `Bienvenido de vuelta, ${primerNombre}.`);
+            } else {
+                Swal.fire('Error', 'Código incorrecto.', 'error');
+            }
+        });
+    }
+}
+
+function pedirTelefonoObligatorio(primerNombre) {
+    Swal.fire({
+        title: `¡Felicidades, ${primerNombre}! 🎉`,
         text: 'Para entregar tus pedidos a domicilio necesitamos un número de WhatsApp.',
         icon: 'info',
         input: 'tel',
@@ -150,54 +245,15 @@ function procesarRegistro(data, codigo) {
     }).then((phoneResult) => {
         if (phoneResult.isConfirmed) {
             localStorage.setItem("customerPhone", phoneResult.value);
-            mostrarToastExito('¡Registro exitoso!', 'Revisa tu correo para verificar tu cuenta.');
-            window.showRecommended();
-        }
-    });
-}
-
-function procesarLogin(email, codigo) {
-    // Nota: Como no tenemos Backend, asumimos que si sabe su correo, le enviamos un código.
-    // El "customerName" lo recuperaremos cuando entre a su perfil y lea de Firebase (o usaremos el email como fallback)
-    
-    localStorage.setItem("verifyCode", codigo); 
-    enviarCodigoPorCorreo("Usuario", email, codigo);
-
-    Swal.fire({
-        title: 'Código Enviado 📧',
-        text: 'Hemos enviado un código de acceso a tu correo. Ingresalo para entrar.',
-        input: 'text',
-        inputPlaceholder: '123456',
-        confirmButtonText: 'Verificar',
-        confirmButtonColor: '#267d46',
-        showCancelButton: true,
-        inputValidator: (value) => {
-            if (!value) return 'Necesitas ingresar el código';
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            if (result.value === codigo) {
-                // Login Exitoso
-                localStorage.setItem("customerEmail", email);
-                localStorage.setItem("emailVerified", "true");
-                
-                // Si ya tenía nombre guardado localmente lo usamos, si no, ponemos un genérico
-                let nombre = localStorage.getItem("customerName") || email.split('@');
-                localStorage.setItem("customerName", nombre);
-
-                actualizarBotonMenu(nombre.split(' '));
-                mostrarToastExito('¡Bienvenido de vuelta!', 'Has iniciado sesión correctamente.');
-                window.showRecommended();
-            } else {
-                Swal.fire('Error', 'Código incorrecto. Intenta de nuevo.', 'error');
-            }
+            mostrarToastExito('¡Perfil completado!', 'Ya puedes pedir y ganar Taqui-Puntos.');
         }
     });
 }
 
 function enviarCodigoPorCorreo(nombre, correo, codigo) {
     if(window.emailjs) {
-        emailjs.send("service_taquizalarana", "template_kp9868k", {
+        // Asegúrate de poner tus IDs reales aquí
+        emailjs.send("TU_SERVICE_ID", "TU_TEMPLATE_ID", {
             to_name: nombre,
             to_email: correo,
             verification_code: codigo
@@ -205,14 +261,24 @@ function enviarCodigoPorCorreo(nombre, correo, codigo) {
     }
 }
 
-function actualizarBotonMenu(nombre) {
-    const btn = document.getElementById('userLoginBtn');
-    if(btn) {
-        btn.innerText = `👤 Hola, ${nombre}`;
-        btn.style.background = "#f0ad4e";
-        btn.style.color = "#333";
-    }
-}
+window.cerrarSesion = function() {
+    Swal.fire({
+        title: '¿Cerrar Sesión?',
+        text: "Tendrás que volver a ingresar para usar tus puntos.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, salir'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // "Cerramos la sesión" quitando la bandera de verificación
+            localStorage.setItem("emailVerified", "false");
+            verificarSesionActiva();
+            mostrarToastExito('Sesión cerrada', 'Vuelve pronto.');
+        }
+    });
+};
 
 function mostrarToastExito(titulo, texto) {
     Swal.fire({
@@ -222,7 +288,7 @@ function mostrarToastExito(titulo, texto) {
         title: titulo,
         text: texto,
         showConfirmButton: false,
-        timer: 5000,
+        timer: 4000,
         timerProgressBar: true
     });
 }
