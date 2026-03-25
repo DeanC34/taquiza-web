@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Perfil - Taquiza La Rana</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         .profile-container {
@@ -99,7 +100,6 @@
             border: 1px solid #f5576c;
         }
 
-        /* Switch tipo iOS */
         .switch {
             position: relative;
             display: inline-block;
@@ -128,12 +128,57 @@
         input:checked + .slider:before { transform: translateX(26px); }
         
         .back-btn { background: #666; margin-bottom: 20px; }
+
+        /* Estilos Verificación y Edición de datos */
+        .verification-box {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .verified-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .edit-data-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        .edit-data-btn:hover { background: #0056b3; }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+            margin: 30px auto 0;
+            transition: background 0.3s;
+        }
+        .logout-btn:hover { background: #c82333; }
     </style>
 </head>
-
 <body>
+
     <div class="menu-dropdown">
-        <button onclick="window.location.href='index.html'" class="menu-btn" style="background: #666;">
+        <button onclick="window.location.href='index.html'" class="menu-btn back-btn" style="background: #666;">
             ⬅️ Volver al Menú
         </button>
     </div>
@@ -143,8 +188,12 @@
             <div class="profile-header">
                 <h1 class="profile-name" id="displayNombre">Cargando...</h1>
                 <p class="profile-email" id="displayEmail">Cargando...</p>
-                <p id="displayPhone" style="color: #267d46; font-weight: bold; margin-top: 5px;">Cargando teléfono...</p>
+                <p id="displayPhone" style="color: #267d46; font-weight: bold; margin-top: 5px; display: flex; align-items: center; justify-content: center;">
+                    Cargando teléfono...
+                </p>
             </div>
+
+            <div id="verificationContainer"></div>
 
             <div class="points-card">
                 <h2>⭐ Mis Taqui-Puntos</h2>
@@ -169,12 +218,13 @@
                     <span class="slider"></span>
                 </label>
             </div>
+
+            <button class="logout-btn" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        // Importamos doc, getDoc y setDoc para trabajar con perfiles específicos
         import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -189,97 +239,190 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 1. Verificar si el usuario está logueado
         const customerEmail = localStorage.getItem("customerEmail");
         const customerName = localStorage.getItem("customerName");
 
         if (!customerEmail) {
-            alert("⚠️ Debes iniciar sesión con Google para ver tu perfil.");
-            window.location.href = "index.html";
+            Swal.fire('Atención', 'Debes iniciar sesión para ver tu perfil.', 'warning').then(() => {
+                window.location.href = "index.html";
+            });
         } else {
-            document.getElementById("displayNombre").innerText = "👤 " + customerName;
+            const primerNombre = customerName.trim().split(' ');
+            document.getElementById("displayNombre").innerText = "👤 " + primerNombre;
             document.getElementById("displayEmail").innerText = customerEmail;
             
-            // Cargar datos de Firebase
             cargarPerfilCRM();
+            verificarEstadoEmail();
         }
 
-    async function cargarPerfilCRM() {
-                try {
-                    const clienteRef = doc(db, "clientes", customerEmail);
-                    const clienteSnap = await getDoc(clienteRef);
-                    const phoneLocal = localStorage.getItem("customerPhone") || "";
+        function verificarEstadoEmail() {
+            const isVerified = localStorage.getItem("emailVerified") === "true";
+            const container = document.getElementById("verificationContainer");
 
-                    if (clienteSnap.exists()) {
-                        const datos = clienteSnap.data();
-                        
-                        // Mostrar teléfono (prioridad a Firebase, si no, al LocalStorage)
-                        document.getElementById("displayPhone").innerText = "📱 " + (datos.telefono || phoneLocal || "Sin número registrado");
-                        document.getElementById("displayPuntos").innerText = datos.puntos || 0;
-                        document.getElementById("promoSwitch").checked = datos.suscrito_promos || false;
+            if (isVerified) {
+                container.innerHTML = `
+                    <div class="verified-box">
+                        ✅ Tu correo está verificado. ¡Ya puedes acumular Taqui-Puntos!
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="verification-box">
+                        ⚠️ Tu correo no está verificado. No podrás acumular puntos hasta que ingreses el código que te enviamos.<br>
+                        <button onclick="ingresarCodigoVerificacion()" style="margin-top: 10px; background:#856404; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">Ingresar Código</button>
+                    </div>
+                `;
+            }
+        }
 
-                        const historialDiv = document.getElementById("displayHistorial");
-                        if (datos.historial && datos.historial.length > 0) {
-                            let html = "";
-                            datos.historial.slice().reverse().forEach(pedido => {
-                                html += `
-                                    <div class="history-item">
-                                        <h4 style="color: #267d46; margin: 0 0 5px 0;">${pedido.fecha}</h4>
-                                        <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #555;">${pedido.detalle}</p>
-                                        <strong style="color: #d62f2f;">Total: $${pedido.total}</strong>
-                                    </div>
-                                `;
-                            });
-                            historialDiv.innerHTML = html;
-                        } else {
-                            historialDiv.innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados.</p>";
-                        }
+        window.ingresarCodigoVerificacion = async () => {
+            const { value: code } = await Swal.fire({
+                title: 'Verificación de Correo',
+                input: 'text',
+                inputLabel: 'Ingresa el código de 6 dígitos que enviamos a tu correo.',
+                inputPlaceholder: '123456',
+                showCancelButton: true,
+                confirmButtonColor: '#267d46',
+                inputValidator: (value) => {
+                    if (!value) return 'Necesitas ingresar un código';
+                }
+            });
 
-                    } else {
-                        // Si es nuevo en Firebase, guardamos su perfil incluyendo el teléfono
-                        await setDoc(clienteRef, {
-                            nombre: customerName,
-                            email: customerEmail,
-                            telefono: phoneLocal, // Añadimos el teléfono a la base de datos
-                            puntos: 0,
-                            suscrito_promos: false,
-                            historial: []
-                        });
-                        document.getElementById("displayPhone").innerText = "📱 " + phoneLocal;
-                        document.getElementById("displayHistorial").innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados. ¡Haz tu primer pedido!</p>";
-                    }
-                } catch (error) {
-                    console.error("Error al cargar perfil:", error);
+            if (code) {
+                const storedCode = localStorage.getItem("verifyCode");
+                if (code === storedCode) {
+                    localStorage.setItem("emailVerified", "true");
+                    
+                    // Actualizar Firebase si ya existe el usuario
+                    try {
+                        const clienteRef = doc(db, "clientes", customerEmail);
+                        await updateDoc(clienteRef, { correoVerificado: true });
+                    } catch (e) { console.log("Aún no hay doc en DB", e) }
+
+                    Swal.fire('¡Verificado!', 'Tu cuenta ha sido verificada con éxito.', 'success');
+                    verificarEstadoEmail();
+                } else {
+                    Swal.fire('Error', 'El código es incorrecto. Intenta nuevamente.', 'error');
                 }
             }
+        };
 
-        // Lógica para actualizar preferencias de correo en la nube
+        window.editarTelefono = async () => {
+            const actual = localStorage.getItem("customerPhone") || "";
+            const { value: phone } = await Swal.fire({
+                title: 'Actualizar Teléfono',
+                input: 'tel',
+                inputValue: actual,
+                inputPlaceholder: 'Ej: 9611234567',
+                showCancelButton: true,
+                confirmButtonColor: '#267d46',
+                inputValidator: (value) => {
+                    if (!value) return '¡Necesitamos tu número para los envíos!';
+                }
+            });
+
+            if (phone) {
+                localStorage.setItem("customerPhone", phone);
+                document.getElementById("displayPhone").innerHTML = `📱 ${phone} <button class="edit-data-btn" onclick="editarTelefono()">Editar</button>`;
+                
+                try {
+                    const clienteRef = doc(db, "clientes", customerEmail);
+                    await updateDoc(clienteRef, { telefono: phone });
+                    Swal.fire('¡Actualizado!', 'Tu teléfono se guardó correctamente.', 'success');
+                } catch (e) {
+                    console.log("No se pudo actualizar en DB", e);
+                }
+            }
+        };
+
+        async function cargarPerfilCRM() {
+            try {
+                const clienteRef = doc(db, "clientes", customerEmail);
+                const clienteSnap = await getDoc(clienteRef);
+                const phoneLocal = localStorage.getItem("customerPhone") || "";
+
+                document.getElementById("displayPhone").innerHTML = `📱 ${phoneLocal || "Sin número"} <button class="edit-data-btn" onclick="editarTelefono()">Editar</button>`;
+
+                if (clienteSnap.exists()) {
+                    const datos = clienteSnap.data();
+                    
+                    if (datos.telefono && !phoneLocal) {
+                        localStorage.setItem("customerPhone", datos.telefono);
+                        document.getElementById("displayPhone").innerHTML = `📱 ${datos.telefono} <button class="edit-data-btn" onclick="editarTelefono()">Editar</button>`;
+                    }
+
+                    document.getElementById("displayPuntos").innerText = datos.puntos || 0;
+                    document.getElementById("promoSwitch").checked = datos.suscrito_promos || false;
+
+                    const historialDiv = document.getElementById("displayHistorial");
+                    if (datos.historial && datos.historial.length > 0) {
+                        let html = "";
+                        datos.historial.slice().reverse().forEach(pedido => {
+                            html += `
+                                <div class="history-item">
+                                    <h4 style="color: #267d46; margin: 0 0 5px 0;">${pedido.fecha}</h4>
+                                    <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #555;">${pedido.detalle}</p>
+                                    <strong style="color: #d62f2f;">Total: $${pedido.total}</strong>
+                                </div>
+                            `;
+                        });
+                        historialDiv.innerHTML = html;
+                    } else {
+                        historialDiv.innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados.</p>";
+                    }
+
+                } else {
+                    document.getElementById("displayHistorial").innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados en la nube.</p>";
+                }
+            } catch (error) {
+                console.error("Error al cargar perfil:", error);
+            }
+        }
+
         document.getElementById("promoSwitch").addEventListener("change", async (e) => {
             const isChecked = e.target.checked;
+            localStorage.setItem("promoSubscribed", isChecked ? "true" : "false");
             const clienteRef = doc(db, "clientes", customerEmail);
             
             try {
-                await updateDoc(clienteRef, {
-                    suscrito_promos: isChecked
-                });
+                await updateDoc(clienteRef, { suscrito_promos: isChecked });
                 if(isChecked){
-                    alert("¡Genial! Estás suscrito a nuestras promociones. 🌮");
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '¡Suscrito a promociones!', showConfirmButton: false, timer: 3000 });
                 }
             } catch (error) {
                 console.error("Error al actualizar preferencias:", error);
             }
         });
 
-        // Lógica temporal para canjear puntos
         window.canjearPuntos = () => {
             const puntosActuales = parseInt(document.getElementById("displayPuntos").innerText);
             if(puntosActuales >= 50) {
-                alert("¡Felicidades! Tienes suficientes puntos. Muestra este mensaje en caja o envíalo por WhatsApp con tu próximo pedido para reclamar tu jarra de agua.");
-                // Aquí en un futuro restaremos los puntos en Firebase
+                Swal.fire('¡Felicidades!', 'Tienes suficientes puntos. Muestra este mensaje en caja o envíalo por WhatsApp con tu próximo pedido para reclamar tu jarra de agua.', 'success');
             } else {
-                alert(`Te faltan ${50 - puntosActuales} puntos. ¡Sigue disfrutando nuestra comida para acumular más!`);
+                Swal.fire('Aún no', `Te faltan ${50 - puntosActuales} puntos. ¡Sigue disfrutando nuestra comida para acumular más!`, 'info');
             }
-        }
+        };
+
+        window.cerrarSesion = () => {
+            Swal.fire({
+                title: '¿Cerrar Sesión?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, salir'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem("customerName");
+                    localStorage.removeItem("customerEmail");
+                    localStorage.removeItem("customerPhone");
+                    localStorage.removeItem("promoSubscribed");
+                    localStorage.removeItem("emailVerified");
+                    localStorage.removeItem("verifyCode");
+                    window.location.href = "index.html";
+                }
+            });
+        };
     </script>
 </body>
 </html>
