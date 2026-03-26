@@ -2,9 +2,10 @@
 // MÓDULO CRM - SISTEMA DE LOGIN MANUAL AVANZADO
 // ==========================================
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+// 1. Agregamos setDoc y updateDoc a los imports de Firestore
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// 1. Agregamos las credenciales de tu proyecto Taquiza
+// Agregamos las credenciales de tu proyecto Taquiza
 const firebaseConfig = {
     apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
     authDomain: "taquiza-web.firebaseapp.com",
@@ -14,11 +15,10 @@ const firebaseConfig = {
     appId: "1:475601236604:web:775b368768e9822789cff9"
 };
 
-// 2. Inicializamos la app SOLO si no existe ya una activa
+// Inicializamos la app SOLO si no existe ya una activa
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
-// De aquí en adelante sigue tu código intacto...
 window.addEventListener('DOMContentLoaded', () => {
     verificarSesionActiva();
 });
@@ -32,7 +32,6 @@ function verificarSesionActiva() {
     const btnLogout = document.getElementById('userLogoutBtn');
 
     if (currentName && isVerified) {
-        // Aseguramos obtener solo el primer nombre sin comas
         const primerNombre = currentName.trim().split(' ');
         
         if (btnLogin) {
@@ -162,7 +161,6 @@ window.openLoginModal = function() {
 async function procesarRegistro(data, codigo) {
     const email = data.email;
 
-    // Mostramos estado de carga mientras verificamos en la base de datos
     Swal.fire({
         title: 'Verificando datos...',
         allowOutsideClick: false,
@@ -170,12 +168,10 @@ async function procesarRegistro(data, codigo) {
     });
 
     try {
-        // Consultamos a Firebase si el correo YA EXISTE
         const clienteRef = doc(db, "clientes", email);
         const clienteSnap = await getDoc(clienteRef);
 
         if (clienteSnap.exists()) {
-            // El correo ya está registrado
             Swal.fire({
                 title: 'Correo ya registrado',
                 text: `El correo ${email} ya tiene una cuenta con nosotros. Por favor, inicia sesión.`,
@@ -183,11 +179,10 @@ async function procesarRegistro(data, codigo) {
                 confirmButtonText: 'Entendido',
                 confirmButtonColor: '#267d46'
             });
-            return; // Detenemos el registro aquí
+            return; 
         }
 
-        // Si no existe, procedemos con el registro normal
-        Swal.close(); // Cerramos el loader
+        Swal.close(); 
 
         const primerNombre = data.name.trim().split(' ');
         
@@ -212,11 +207,29 @@ async function procesarRegistro(data, codigo) {
             inputValidator: (value) => {
                 if (!value) return 'Necesitas ingresar el código';
             }
-        }).then((result) => {
+        // 2. HACEMOS LA PROMESA ASÍNCRONA PARA PODER USAR AWAIT
+        }).then(async (result) => {
             if (result.isConfirmed && result.value === codigo) {
                 localStorage.setItem("emailVerified", "true");
+                
+                // 3. ¡AQUÍ ESTÁ LA MAGIA! CREAMOS EL USUARIO EN FIREBASE INMEDIATAMENTE
+                try {
+                    await setDoc(clienteRef, {
+                        nombre: data.name,
+                        email: email,
+                        correoVerificado: true,
+                        suscrito_promos: data.promo ? true : false,
+                        puntos: 0,
+                        historial: []
+                        // No guardamos el teléfono aún, por si lo omiten
+                    });
+                } catch (e) {
+                    console.error("Error al registrar en Firebase:", e);
+                }
+
                 verificarSesionActiva();
-                pedirTelefonoObligatorio(primerNombre);
+                // 4. Pasamos el email como parámetro a la función del teléfono
+                pedirTelefonoObligatorio(primerNombre, email); 
             } else {
                 Swal.fire('Error', 'Código incorrecto. Intenta registrarte nuevamente.', 'error');
             }
@@ -228,13 +241,11 @@ async function procesarRegistro(data, codigo) {
     }
 }
 
-// Nueva función robusta para procesar el login
 async function procesarLogin(data, codigoTemporal) {
     const email = data.email;
     let savedName = localStorage.getItem("customerName");
     let primerNombre = "Usuario";
 
-    // Mostramos estado de carga
     Swal.fire({
         title: 'Buscando cuenta...',
         allowOutsideClick: false,
@@ -242,23 +253,20 @@ async function procesarLogin(data, codigoTemporal) {
     });
 
     try {
-        // Consultamos a Firebase si la cuenta existe
         const clienteRef = doc(db, "clientes", email);
         const clienteSnap = await getDoc(clienteRef);
 
         if (clienteSnap.exists()) {
             const dbData = clienteSnap.data();
-            savedName = dbData.nombre; // Recuperamos el nombre de la base de datos
+            savedName = dbData.nombre; 
             primerNombre = savedName.trim().split(' ');
             
-            // Guardamos localmente
             localStorage.setItem("customerName", savedName);
             localStorage.setItem("customerEmail", email);
             if (dbData.telefono) localStorage.setItem("customerPhone", dbData.telefono);
 
-            Swal.close(); // Cerramos el loader
+            Swal.close(); 
             
-            // Flujo 1: Acceso con contraseña
             if (data.pass) {
                 const savedPass = localStorage.getItem("customerPass");
                 if (data.pass === savedPass) {
@@ -269,7 +277,6 @@ async function procesarLogin(data, codigoTemporal) {
                     Swal.fire('Error', 'Contraseña incorrecta.', 'error');
                 }
             } 
-            // Flujo 2: Acceso por código (Passwordless)
             else {
                 localStorage.setItem("verifyCode", codigoTemporal); 
                 enviarCodigoPorCorreo(primerNombre, email, codigoTemporal);
@@ -294,7 +301,6 @@ async function procesarLogin(data, codigoTemporal) {
             }
 
         } else {
-            // La cuenta no existe en Firebase
             Swal.fire('Cuenta no encontrada', `El correo ${email} no está registrado. Por favor crea una cuenta nueva.`, 'warning');
         }
     } catch (error) {
@@ -303,7 +309,8 @@ async function procesarLogin(data, codigoTemporal) {
     }
 }
 
-function pedirTelefonoObligatorio(primerNombre) {
+// 5. RECIBIMOS EL EMAIL EN LA FUNCIÓN PARA PODER GUARDAR EL TELÉFONO EN FIREBASE
+function pedirTelefonoObligatorio(primerNombre, email) {
     Swal.fire({
         title: `¡Felicidades, ${primerNombre}! 🎉`,
         text: 'Para entregar tus pedidos a domicilio necesitamos un número de WhatsApp. ¿Quieres agregarlo ahora?',
@@ -313,11 +320,10 @@ function pedirTelefonoObligatorio(primerNombre) {
         confirmButtonText: 'Guardar Número',
         confirmButtonColor: '#267d46',
         showCancelButton: true,
-        cancelButtonText: 'Omitir por ahora', // Botón para ignorar
+        cancelButtonText: 'Omitir por ahora', 
         cancelButtonColor: '#666',
         allowOutsideClick: false,
         inputValidator: (value) => {
-            // Solo validamos si el usuario intenta presionar "Guardar Número" sin escribir nada
             return new Promise((resolve) => {
                 if (!value) {
                     resolve('¡Escribe tu número o presiona "Omitir"!');
@@ -326,13 +332,21 @@ function pedirTelefonoObligatorio(primerNombre) {
                 }
             });
         }
-    }).then((phoneResult) => {
+    // 6. HACEMOS LA PROMESA ASÍNCRONA PARA ACTUALIZAR LA BD
+    }).then(async (phoneResult) => {
         if (phoneResult.isConfirmed && phoneResult.value) {
-            // Si el usuario ingresó un número y le dio a Guardar
             localStorage.setItem("customerPhone", phoneResult.value);
+            
+            // 7. GUARDAMOS EL TELÉFONO EN FIREBASE
+            try {
+                const clienteRef = doc(db, "clientes", email);
+                await updateDoc(clienteRef, { telefono: phoneResult.value });
+            } catch (e) {
+                console.error("Error guardando teléfono:", e);
+            }
+
             mostrarToastExito('¡Perfil completado!', 'Ya puedes pedir y ganar Taqui-Puntos.');
         } else if (phoneResult.dismiss === Swal.DismissReason.cancel) {
-            // Si el usuario le dio a "Omitir por ahora"
             mostrarToastExito('¡Registro exitoso!', 'Puedes agregar tu teléfono después en tu Perfil.');
         }
     });
@@ -359,7 +373,6 @@ window.cerrarSesion = function() {
         confirmButtonText: 'Sí, salir'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Limpieza Total
             localStorage.removeItem("customerName");
             localStorage.removeItem("customerEmail");
             localStorage.removeItem("customerPhone");
@@ -368,10 +381,9 @@ window.cerrarSesion = function() {
             localStorage.removeItem("verifyCode");
             localStorage.removeItem("customerPass");
             
-            verificarSesionActiva(); // Actualiza la UI
+            verificarSesionActiva(); 
             mostrarToastExito('Sesión cerrada', 'Vuelve pronto.');
             
-            // Si estaba en el perfil, lo saca al index
             if(window.location.pathname.includes("perfil.html")) {
                 window.location.href = "index.html";
             }
