@@ -159,39 +159,73 @@ window.openLoginModal = function() {
     });
 };
 
-function procesarRegistro(data, codigo) {
-    const primerNombre = data.name.trim().split(' ');
-    
-    localStorage.setItem("customerName", data.name);
-    localStorage.setItem("customerEmail", data.email);
-    if(data.pass) localStorage.setItem("customerPass", data.pass);
-    localStorage.setItem("promoSubscribed", data.promo ? "true" : "false");
-    
-    localStorage.setItem("emailVerified", "false"); 
-    localStorage.setItem("verifyCode", codigo); 
+async function procesarRegistro(data, codigo) {
+    const email = data.email;
 
-    enviarCodigoPorCorreo(primerNombre, data.email, codigo);
-
+    // Mostramos estado de carga mientras verificamos en la base de datos
     Swal.fire({
-        title: 'Verifica tu cuenta 📧',
-        text: `Hola ${primerNombre}, hemos enviado un código a ${data.email}. Ingrésalo para finalizar tu registro.`,
-        input: 'text',
-        inputPlaceholder: '123456',
-        confirmButtonText: 'Verificar y Continuar',
-        confirmButtonColor: '#267d46',
+        title: 'Verificando datos...',
         allowOutsideClick: false,
-        inputValidator: (value) => {
-            if (!value) return 'Necesitas ingresar el código';
-        }
-    }).then((result) => {
-        if (result.isConfirmed && result.value === codigo) {
-            localStorage.setItem("emailVerified", "true");
-            verificarSesionActiva();
-            pedirTelefonoObligatorio(primerNombre);
-        } else {
-            Swal.fire('Error', 'Código incorrecto. Intenta registrarte nuevamente.', 'error');
-        }
+        didOpen: () => { Swal.showLoading(); }
     });
+
+    try {
+        // Consultamos a Firebase si el correo YA EXISTE
+        const clienteRef = doc(db, "clientes", email);
+        const clienteSnap = await getDoc(clienteRef);
+
+        if (clienteSnap.exists()) {
+            // El correo ya está registrado
+            Swal.fire({
+                title: 'Correo ya registrado',
+                text: `El correo ${email} ya tiene una cuenta con nosotros. Por favor, inicia sesión.`,
+                icon: 'warning',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#267d46'
+            });
+            return; // Detenemos el registro aquí
+        }
+
+        // Si no existe, procedemos con el registro normal
+        Swal.close(); // Cerramos el loader
+
+        const primerNombre = data.name.trim().split(' ');
+        
+        localStorage.setItem("customerName", data.name);
+        localStorage.setItem("customerEmail", email);
+        if(data.pass) localStorage.setItem("customerPass", data.pass);
+        localStorage.setItem("promoSubscribed", data.promo ? "true" : "false");
+        
+        localStorage.setItem("emailVerified", "false"); 
+        localStorage.setItem("verifyCode", codigo); 
+
+        enviarCodigoPorCorreo(primerNombre, email, codigo);
+
+        Swal.fire({
+            title: 'Verifica tu cuenta 📧',
+            text: `Hola ${primerNombre}, hemos enviado un código a ${email}. Ingrésalo para finalizar tu registro.`,
+            input: 'text',
+            inputPlaceholder: '123456',
+            confirmButtonText: 'Verificar y Continuar',
+            confirmButtonColor: '#267d46',
+            allowOutsideClick: false,
+            inputValidator: (value) => {
+                if (!value) return 'Necesitas ingresar el código';
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value === codigo) {
+                localStorage.setItem("emailVerified", "true");
+                verificarSesionActiva();
+                pedirTelefonoObligatorio(primerNombre);
+            } else {
+                Swal.fire('Error', 'Código incorrecto. Intenta registrarte nuevamente.', 'error');
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al verificar correo:", error);
+        Swal.fire('Error', 'Hubo un problema de conexión. Inténtalo de nuevo.', 'error');
+    }
 }
 
 // Nueva función robusta para procesar el login
@@ -272,20 +306,34 @@ async function procesarLogin(data, codigoTemporal) {
 function pedirTelefonoObligatorio(primerNombre) {
     Swal.fire({
         title: `¡Felicidades, ${primerNombre}! 🎉`,
-        text: 'Para entregar tus pedidos a domicilio necesitamos un número de WhatsApp.',
+        text: 'Para entregar tus pedidos a domicilio necesitamos un número de WhatsApp. ¿Quieres agregarlo ahora?',
         icon: 'info',
         input: 'tel',
         inputPlaceholder: 'Ej: 9611234567',
-        confirmButtonText: 'Guardar y Finalizar',
+        confirmButtonText: 'Guardar Número',
         confirmButtonColor: '#267d46',
+        showCancelButton: true,
+        cancelButtonText: 'Omitir por ahora', // Botón para ignorar
+        cancelButtonColor: '#666',
         allowOutsideClick: false,
         inputValidator: (value) => {
-            if (!value) return '¡Necesitamos tu número!';
+            // Solo validamos si el usuario intenta presionar "Guardar Número" sin escribir nada
+            return new Promise((resolve) => {
+                if (!value) {
+                    resolve('¡Escribe tu número o presiona "Omitir"!');
+                } else {
+                    resolve();
+                }
+            });
         }
     }).then((phoneResult) => {
-        if (phoneResult.isConfirmed) {
+        if (phoneResult.isConfirmed && phoneResult.value) {
+            // Si el usuario ingresó un número y le dio a Guardar
             localStorage.setItem("customerPhone", phoneResult.value);
             mostrarToastExito('¡Perfil completado!', 'Ya puedes pedir y ganar Taqui-Puntos.');
+        } else if (phoneResult.dismiss === Swal.DismissReason.cancel) {
+            // Si el usuario le dio a "Omitir por ahora"
+            mostrarToastExito('¡Registro exitoso!', 'Puedes agregar tu teléfono después en tu Perfil.');
         }
     });
 }
