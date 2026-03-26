@@ -3,7 +3,7 @@
 // ==========================================
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { app } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"; // Asumimos que app ya está inicializada en index.html
-
+// Prueba de commit
 // Obtenemos la referencia a la base de datos de manera segura
 const db = getFirestore();
 
