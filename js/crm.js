@@ -1,12 +1,24 @@
 // ==========================================
 // MÓDULO CRM - SISTEMA DE LOGIN MANUAL AVANZADO
 // ==========================================
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { app } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"; // Asumimos que app ya está inicializada en index.html
-// Prueba de commit
-// Obtenemos la referencia a la base de datos de manera segura
-const db = getFirestore();
 
+// 1. Agregamos las credenciales de tu proyecto Taquiza
+const firebaseConfig = {
+    apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
+    authDomain: "taquiza-web.firebaseapp.com",
+    projectId: "taquiza-web",
+    storageBucket: "taquiza-web.firebasestorage.app",
+    messagingSenderId: "475601236604",
+    appId: "1:475601236604:web:775b368768e9822789cff9"
+};
+
+// 2. Inicializamos la app SOLO si no existe ya una activa
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const db = getFirestore(app);
+
+// De aquí en adelante sigue tu código intacto...
 window.addEventListener('DOMContentLoaded', () => {
     verificarSesionActiva();
 });
