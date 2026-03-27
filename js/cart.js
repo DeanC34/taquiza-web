@@ -6,8 +6,30 @@ let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 // 1. GESTIÓN DEL CARRITO
 
-function addToCart(name, price) {
+function addToCart(name, price, stockActual) {
+    // Si por alguna razón no llega el stock, asumimos que es 0
+    const stock = stockActual !== undefined ? stockActual : 0;
+    
     const existingItem = cart.find(item => item.name === name);
+    const cantidadDeseada = existingItem ? existingItem.quantity + 1 : 1;
+
+    // --- NUEVO: VALIDACIÓN DE STOCK ---
+    if (cantidadDeseada > stock) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'warning',
+                title: '¡Ups! Sin stock',
+                text: stock === 0 
+                    ? `Lo sentimos, por el momento no nos queda ${name}.` 
+                    : `Solo nos quedan ${stock} unidades de ${name} disponibles.`,
+                confirmButtonColor: '#f0ad4e'
+            });
+        } else {
+            alert(stock === 0 ? `No hay ${name} disponible.` : `Solo quedan ${stock} de ${name}.`);
+        }
+        return; // Detenemos la función aquí, no se agrega al carrito
+    }
+    // ----------------------------------
 
     if (existingItem) {
         existingItem.quantity++;
@@ -210,7 +232,7 @@ function processWebOrder() {
                 window.guardarPedidoEnCRM([...cart], total);
             }
 
-            // --- NUEVO: DESCONTAR DEL INVENTARIO (SCM) ---
+            // --- DESCONTAR DEL INVENTARIO (SCM) ---
             if (window.descontarInventario) {
                 window.descontarInventario([...cart]);
             }

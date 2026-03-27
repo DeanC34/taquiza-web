@@ -183,7 +183,7 @@
                             <div class="product-name">${data.nombre}</div>
                             <div class="product-price">$${data.precio}</div>
                             <button class="add-btn"
-                                onclick="addToCart('${data.nombre}', ${data.precio})">
+                                onclick="addToCart('${data.nombre}', ${data.precio}, ${data.stock !== undefined ? data.stock : 0})">
                                 Agregar
                             </button>
                         </div>

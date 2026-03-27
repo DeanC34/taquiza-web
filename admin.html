@@ -51,6 +51,10 @@
         tr:hover { background-color: #f1f1f1; }
         .status-low { color: #d62f2f; font-weight: bold; }
         .status-ok { color: #267d46; font-weight: bold; }
+        
+        /* Botón rápido de reabastecimiento */
+        .btn-restock { background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 5px 10px; margin-top: 10px; transition: 0.3s; }
+        .btn-restock:hover { background-color: #2980b9; }
     </style>
 </head>
 
@@ -295,19 +299,25 @@
                 let htmlAlertas = '';
                 let productosBajos = 0;
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
+                querySnapshot.forEach((documento) => {
+                    const data = documento.data();
                     const stock = data.stock !== undefined ? data.stock : 0; 
+                    const id = documento.id;
 
                     if (stock <= 10) {
                         productosBajos++;
                         const isCritico = stock <= 3; // Crítico (Rojo)
-                        // Si está entre 4 y 10 es Holgura/Precaución (Amarillo)
+                        
                         htmlAlertas += `
                             <div class="kpi-card ${isCritico ? 'alert' : 'warning'}">
                                 <h3>${isCritico ? '⚠️ CRÍTICO:' : '⚠️ HOLGURA:'} ${data.nombre}</h3>
                                 <p>${stock} uds</p>
                                 <small>${isCritico ? 'Reabastecer INMEDIATAMENTE' : 'Programar compra pronto'}</small>
+                                <br>
+                                <button class="btn-restock" style="width: 100%; background: rgba(0,0,0,0.3); font-weight: bold;" 
+                                    onclick="reabastecerStock('${id}', '${data.nombre}', ${stock})">
+                                    📦 Reabastecer Rápido
+                                </button>
                             </div>
                         `;
                     }
@@ -415,6 +425,10 @@
                                 <p style="font-size: 0.8em; font-weight: normal;">${data.categoria}</p>
                             </div>
                             <div class="action-buttons">
+                                <button class="btn-restock" 
+                                    onclick="reabastecerStock('${id}', '${data.nombre}', ${stock})">
+                                    📦 Sumar Stock
+                                </button>
                                 <button class="btn-action btn-edit" 
                                     onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${nombreArchivoImg}', ${stock})">
                                     ✏️ Editar
@@ -432,6 +446,47 @@
                 inventoryList.innerHTML = '<p>Error al cargar los platillos.</p>';
             }
         }
+
+        // --- NUEVO: FUNCIÓN RÁPIDA PARA REABASTECER ---
+        window.reabastecerStock = async (id, nombre, stockActual) => {
+            const { value: cantidad } = await Swal.fire({
+                title: `Reabastecer: ${nombre}`,
+                input: 'number',
+                inputLabel: `Stock actual: ${stockActual} uds. ¿Cuántas unidades nuevas vas a ingresar?`,
+                inputPlaceholder: 'Ejemplo: 20',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#267d46',
+                inputValidator: (value) => {
+                    if (!value || value <= 0) {
+                        return 'Por favor ingresa una cantidad válida mayor a 0';
+                    }
+                }
+            });
+
+            if (cantidad) {
+                try {
+                    const nuevoStock = stockActual + parseInt(cantidad);
+                    const platilloRef = doc(db, "menu_items", id);
+                    
+                    await updateDoc(platilloRef, { stock: nuevoStock });
+                    
+                    Swal.fire(
+                        '¡Inventario Actualizado!',
+                        `Se sumaron ${cantidad} unidades. El nuevo stock de ${nombre} es de ${nuevoStock} uds.`,
+                        'success'
+                    );
+                    
+                    // Recargamos las vistas para que se quiten las alertas si ya superó el mínimo
+                    cargarInventario();
+                    cargarAlertasSCM();
+                } catch (error) {
+                    console.error("Error al reabastecer:", error);
+                    Swal.fire('Error', 'Hubo un problema al conectar con la base de datos.', 'error');
+                }
+            }
+        };
 
         window.abrirModalEditar = (id, nombre, precio, categoria, imagen, stock) => {
             document.getElementById('editId').value = id;
