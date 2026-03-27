@@ -491,7 +491,8 @@
         window.cerrarSesion = () => {
             Swal.fire({
                 title: '¿Cerrar Sesión?',
-                icon: 'question',
+                text: "Tendrás que volver a ingresar para hacer pedidos o usar puntos.",
+                icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
@@ -504,7 +505,19 @@
                     localStorage.removeItem("promoSubscribed");
                     localStorage.removeItem("emailVerified");
                     localStorage.removeItem("verifyCode");
-                    window.location.href = "index.html";
+                    
+                    Swal.fire({
+                        toast: true,
+                        position: 'bottom-start',
+                        icon: 'success',
+                        title: 'Sesión cerrada',
+                        text: 'Vuelve pronto.',
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.location.href = "index.html";
+                    });
                 }
             });
         };

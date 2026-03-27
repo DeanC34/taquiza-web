@@ -327,6 +327,28 @@ padding:15px 20px;
 font-size:1em;
 }
 
+/* Ocultar el botón rojo de cerrar sesión en móviles */
+#userLogoutBtn {
+    display: none !important;
+}
+
+/* Ajustes para la barra de botones en móviles para que no se amontonen */
+.top-menu-bar {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+}
+
+.menu-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.user-section{
+position:static;
+margin-top:10px;
+}
+
 }
 
 .empty-cart{
@@ -369,10 +391,8 @@ Menu
 ========================= */
 
 .menu-dropdown {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 3000;
+    position: relative;
+    display: flex;
 }
 
 .menu-btn {
@@ -422,12 +442,6 @@ Menu
     color: #267d46; /* Letra verde al pasar el mouse */
 }
 
-@media(max-width:768px){
-.user-section{
-position:static;
-margin-top:10px;
-}
-}
 
 /* =======================================
    ESTILOS GENERALES Y FORMULARIOS (ADMIN)
@@ -646,70 +660,6 @@ details[open] .details-content {
 }
 
 /* =======================================
-   BOTONES FLOTANTES SUPERIORES (CORREGIDO)
-   ======================================= */
-.menu-dropdown {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 3000;
-}
-
-.user-dropdown {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 3000;
-}
-
-.menu-btn {
-    background: #f5576c;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
-}
-
-.menu-btn:hover {
-    background: #d62f2f;
-    transform: scale(1.05);
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    top: 60px;
-    left: 0;
-    background: white;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    border-radius: 10px;
-    overflow: hidden;
-    width: 200px;
-}
-
-.dropdown-content button {
-    display: block;
-    width: 100%;
-    padding: 15px;
-    border: none;
-    background: white;
-    text-align: left;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.dropdown-content button:hover {
-    background: #f0f0f0;
-    color: #267d46;
-}
-
-/* =======================================
    BOTONES FLOTANTES SUPERIORES
    ======================================= */
 .top-menu-bar {
@@ -727,8 +677,7 @@ details[open] .details-content {
     pointer-events: auto; /* Reactiva el click en los botones reales */
 }
 
-/* Evitar que se posicionen de forma absoluta individualmente (quita los que tenías) */
-.menu-dropdown, .user-dropdown {
-    position: relative; /* Asegura que sigan las reglas de flexbox */
-    display: flex; /* Para poner botones de login y logout juntos */
+.user-dropdown {
+    position: relative;
+    display: flex;
 }
