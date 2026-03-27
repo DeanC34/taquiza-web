@@ -22,9 +22,27 @@
         .kpi-card.alert { background: linear-gradient(135deg, #f5576c 0%, #d62f2f 100%); }
         .kpi-card.warning { background: linear-gradient(135deg, #f0ad4e 0%, #d3913a 100%); color: #333;}
         
+        /* CORRECCIÓN DEFINITIVA DE LA GRÁFICA */
         .chart-container {
-            background: white; padding: 20px; border-radius: 10px; border: 1px solid #eee;
-            margin-top: 20px; max-width: 400px; margin: 20px auto;
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            border: 1px solid #eee;
+            margin: 20px auto; 
+            max-width: 500px;
+        }
+        
+        .chart-wrapper {
+            position: relative; 
+            width: 100%; 
+            height: 250px; /* Altura estricta */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas#ventasChart {
+            max-height: 250px !important; /* Fuerza a Chart.js a no crecer más de esto */
         }
         
         .table-container { overflow-x: auto; margin-top: 15px; }
@@ -74,7 +92,7 @@
                         <div class="dashboard-grid">
                             <div class="chart-container">
                                 <h3 style="text-align: center; color: #333; margin-bottom: 15px;">Tipos de Platillos</h3>
-                                <div style="position: relative; height: 250px; width: 100%;">
+                                <div class="chart-wrapper">
                                     <canvas id="ventasChart"></canvas>
                                 </div>
                             </div>
@@ -228,12 +246,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let myChart = null; // Variable global para guardar el gráfico
+        let myChart = null; 
 
         // --- INICIALIZAR GRÁFICO ERP DINÁMICO ---
         async function initChart() {
             try {
-                // Leemos los datos reales de tu base de datos para la gráfica
                 const querySnapshot = await getDocs(collection(db, "menu_items"));
                 let countPlatillos = 0;
                 let countBebidas = 0;
@@ -244,10 +261,8 @@
                     if (data.categoria === "BEBIDAS") countBebidas++;
                 });
 
-                // Actualizamos la tarjeta de total de platillos
                 document.getElementById('totalPlatillosKpi').innerText = countPlatillos + countBebidas;
 
-                // Destruimos el gráfico viejo si existe para no encimar colores
                 if (myChart) {
                     myChart.destroy();
                 }
@@ -258,7 +273,7 @@
                     data: {
                         labels: ['Platillos (Comida)', 'Bebidas'],
                         datasets: [{
-                            data: [countPlatillos, countBebidas], // Datos Reales
+                            data: [countPlatillos, countBebidas], 
                             backgroundColor: [
                                 '#267d46', // Verde Rana
                                 '#f0ad4e'  // Amarillo/Naranja
@@ -266,7 +281,15 @@
                             borderWidth: 2
                         }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
                 });
             } catch (error) {
                 console.error("Error cargando gráfica:", error);
@@ -278,7 +301,7 @@
             if (sessionStorage.getItem("adminLogueado") === "true") {
                 document.getElementById("adminDashboard").style.display = "block";
                 cargarInventario();
-                initChart(); // Iniciar gráfica
+                initChart(); 
                 return;
             }
 
@@ -329,7 +352,7 @@
                     });
                     document.getElementById("adminDashboard").style.display = "block";
                     cargarInventario(); 
-                    initChart(); // Iniciar gráfica
+                    initChart(); 
                 } else {
                     Swal.fire({
                         title: 'Acceso Denegado',
@@ -346,11 +369,10 @@
             }
         }
 
-        // Ejecutamos la seguridad apenas carga la página
         verificarAccesoAdmin();
 
 
-        // --- LOGICA DEL INVENTARIO (REAL) ---
+        // --- LOGICA DEL INVENTARIO ---
         async function cargarInventario() {
             const inventoryList = document.getElementById('inventoryList');
             inventoryList.innerHTML = '<p style="text-align:center;">Cargando inventario...</p>';
