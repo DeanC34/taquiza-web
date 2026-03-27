@@ -97,7 +97,7 @@ function sendToWhatsApp() {
     }
 
     let customerName = localStorage.getItem("customerName") || prompt("Ingresa tu nombre para el pedido:");
-    if (!customerName) return; // Si el usuario cancela el prompt
+    if (!customerName) return; 
 
     let message = `🌮 Nuevo Pedido de *${customerName}* - Taquiza La Rana 🌮\n\n`;
     let total = 0;
@@ -182,17 +182,14 @@ function processWebOrder() {
         return;
     }
 
-    // Elementos de la interfaz
     const statusDiv = document.getElementById("orderStatus");
     const btnWeb = document.querySelector(".web-order-btn");
     const btnWa = document.querySelector(".whatsapp-btn");
     const cartTotalDiv = document.getElementById("cartTotal");
     const closeBtn = document.querySelector(".close-btn");
     
-    // Calcular el total
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    // 1. Bloquear botones e iniciar estado
     statusDiv.style.display = "block";
     btnWeb.style.display = "none";
     btnWa.style.display = "none";
@@ -200,26 +197,29 @@ function processWebOrder() {
 
     statusDiv.innerHTML = "⏳ Validando método de pago...";
     
-    // 2. Simulador con Timers (SetTimeout)
     setTimeout(() => {
         statusDiv.innerHTML = "🍳 Recibido. ¡Preparando tu orden en cocina!";
-        statusDiv.style.color = "#f0ad4e"; // Naranja
+        statusDiv.style.color = "#f0ad4e"; 
         
         setTimeout(() => {
             statusDiv.innerHTML = "✅ ¡Pago exitoso y orden lista!";
-            statusDiv.style.color = "#267d46"; // Verde
+            statusDiv.style.color = "#267d46"; 
             
-            // 3. ENVIAR A FIREBASE (Llamamos a la función global en index.html)
+            // 3. ENVIAR A FIREBASE (CRM)
             if (window.guardarPedidoEnCRM) {
-                // Pasamos una copia del carrito y el total
                 window.guardarPedidoEnCRM([...cart], total);
+            }
+
+            // --- NUEVO: DESCONTAR DEL INVENTARIO (SCM) ---
+            if (window.descontarInventario) {
+                window.descontarInventario([...cart]);
             }
             
             // 4. Limpiar el carrito
             cart = [];
             updateCart();
             
-            // 5. Restaurar interfaz después de unos segundos y cerrar modal
+            // 5. Restaurar interfaz
             setTimeout(() => {
                 statusDiv.style.display = "none";
                 btnWeb.style.display = "block";
@@ -228,6 +228,6 @@ function processWebOrder() {
                 toggleCart();
             }, 3500);
 
-        }, 3000); // 3000 milisegundos (3 segundos)
-    }, 2000);  // 2 seg valida pago
+        }, 3000); 
+    }, 2000);  
 }

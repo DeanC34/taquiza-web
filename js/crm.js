@@ -20,7 +20,6 @@ window.addEventListener('DOMContentLoaded', () => {
     verificarSesionActiva();
 });
 
-// Función para revisar si hay alguien logueado
 function verificarSesionActiva() {
     const currentName = localStorage.getItem("customerName");
     const isVerified = localStorage.getItem("emailVerified") === "true";
@@ -29,7 +28,7 @@ function verificarSesionActiva() {
     const btnLogout = document.getElementById('userLogoutBtn');
 
     if (currentName && isVerified) {
-        // CORRECCIÓN: Agregamos para evitar el error de las comas en el menú superior
+        // CORRECCIÓN APLICADA AQUÍ
         const primerNombre = currentName.trim().split(' ');
         
         if (btnLogin) {
@@ -55,9 +54,6 @@ function verificarSesionActiva() {
     }
 }
 
-// ------------------------------------------
-// 1. GESTIÓN DE ACCESO (LOGIN / REGISTRO)
-// ------------------------------------------
 window.openLoginModal = function() {
     Swal.fire({
         title: 'Acceso a La Rana 🐸',
@@ -182,7 +178,8 @@ async function procesarRegistro(data, codigo) {
 
         Swal.close(); 
 
-        const primerNombre = data.name.trim().split(' '); // CORRECCIÓN AQUÍ TAMBIÉN
+        // CORRECCIÓN APLICADA AQUÍ
+        const primerNombre = data.name.trim().split(' '); 
         
         localStorage.setItem("customerName", data.name);
         localStorage.setItem("customerEmail", email);
@@ -253,7 +250,8 @@ async function procesarLogin(data, codigoTemporal) {
         if (clienteSnap.exists()) {
             const dbData = clienteSnap.data();
             savedName = dbData.nombre; 
-            primerNombre = savedName.trim().split(' '); // CORRECCIÓN AQUÍ TAMBIÉN
+            // CORRECCIÓN APLICADA AQUÍ
+            primerNombre = savedName.trim().split(' '); 
             
             localStorage.setItem("customerName", savedName);
             localStorage.setItem("customerEmail", email);
@@ -353,7 +351,6 @@ function enviarCodigoPorCorreo(nombre, correo, codigo) {
     }
 }
 
-// ESTA FUNCIÓN SE QUEDA AQUÍ POR SI AÚN HAY ALGÚN BOTÓN QUE LA LLAME (COMO EL DE ADMIN)
 window.cerrarSesion = function() {
     Swal.fire({
         title: '¿Cerrar Sesión?',
@@ -375,7 +372,6 @@ window.cerrarSesion = function() {
             
             verificarSesionActiva(); 
             
-            // USAMOS EL TOAST ESTILO INDEX AQUÍ TAMBIÉN
             Swal.fire({
                 toast: true,
                 position: 'bottom-start',
@@ -407,9 +403,6 @@ function mostrarToastExito(titulo, texto) {
     });
 }
 
-// ------------------------------------------
-// 2. HISTORIAL DE PEDIDOS (Recomendador)
-// ------------------------------------------
 window.saveCustomerData = function(productName) {
     let history = JSON.parse(localStorage.getItem("customerOrderHistory")) || [];
     history.push(productName);

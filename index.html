@@ -146,7 +146,9 @@
     <script type="module">
         // 1. Agregamos getApps y getApp en la importación
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        
+        // ¡IMPORTANTE! Aquí agregamos 'query' y 'where' a la importación
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
@@ -314,6 +316,32 @@
                 Swal.fire('Error', 'Hubo un error al procesar los datos en la nube.', 'error');
             }
         };
+
+        // --- NUEVO: PUENTE SCM PARA DESCONTAR INVENTARIO ---
+        window.descontarInventario = async (carrito) => {
+            for (const item of carrito) {
+                try {
+                    // 1. Busca el platillo por su nombre exacto
+                    const q = query(collection(db, "menu_items"), where("nombre", "==", item.name));
+                    const querySnapshot = await getDocs(q);
+                    
+                    querySnapshot.forEach(async (documento) => {
+                        const docRef = doc(db, "menu_items", documento.id);
+                        const stockActual = documento.data().stock || 0;
+                        
+                        // 2. Resta la cantidad comprada
+                        let nuevoStock = stockActual - item.quantity;
+                        if (nuevoStock < 0) nuevoStock = 0; 
+
+                        // 3. Actualiza Firebase
+                        await updateDoc(docRef, { stock: nuevoStock });
+                    });
+                } catch (error) {
+                    console.error("Error descontando stock de", item.name, error);
+                }
+            }
+        };
+
     </script>
 </body>
 </html>

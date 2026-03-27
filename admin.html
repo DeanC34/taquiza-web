@@ -19,10 +19,9 @@
         }
         .kpi-card h3 { margin: 0 0 10px 0; font-size: 1em; opacity: 0.9; }
         .kpi-card p { margin: 0; font-size: 2em; font-weight: bold; }
-        .kpi-card.alert { background: linear-gradient(135deg, #f5576c 0%, #d62f2f 100%); }
-        .kpi-card.warning { background: linear-gradient(135deg, #f0ad4e 0%, #d3913a 100%); color: #333;}
+        .kpi-card.alert { background: linear-gradient(135deg, #f5576c 0%, #d62f2f 100%); } /* Crítico */
+        .kpi-card.warning { background: linear-gradient(135deg, #f0ad4e 0%, #d3913a 100%); color: #333;} /* Holgura */
         
-        /* CORRECCIÓN DEFINITIVA DE LA GRÁFICA */
         .chart-container {
             background: white; 
             padding: 20px; 
@@ -35,14 +34,14 @@
         .chart-wrapper {
             position: relative; 
             width: 100%; 
-            height: 250px; /* Altura estricta */
+            height: 250px; 
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         canvas#ventasChart {
-            max-height: 250px !important; /* Fuerza a Chart.js a no crecer más de esto */
+            max-height: 250px !important; 
         }
         
         .table-container { overflow-x: auto; margin-top: 15px; }
@@ -100,21 +99,13 @@
                     </div>
                 </details>
 
-                <details> 
+                <details open> 
                     <summary>📦 Módulo SCM: Cadena de Suministro 🔽</summary>
                     <div class="details-content">
-                        <h3 style="color: #333; border-bottom: 2px solid #267d46; padding-bottom: 5px; margin-bottom: 15px;">Alertas de Stock</h3>
-                        <div class="dashboard-grid">
-                            <div class="kpi-card alert">
-                                <h3>⚠️ Caguamas Restantes</h3>
-                                <p>4 uds</p>
-                                <small>Llamar a proveedor urgente</small>
-                            </div>
-                            <div class="kpi-card alert">
-                                <h3>⚠️ Kilos de Pastor</h3>
-                                <p>2.5 kg</p>
-                                <small>Suficiente para 2 horas</small>
-                            </div>
+                        <h3 style="color: #333; border-bottom: 2px solid #267d46; padding-bottom: 5px; margin-bottom: 15px;">Alertas de Stock en Tiempo Real</h3>
+                        
+                        <div class="dashboard-grid" id="scmAlertsContainer">
+                            <p>Cargando estado del inventario...</p>
                         </div>
 
                         <h3 style="color: #333; border-bottom: 2px solid #f0ad4e; padding-bottom: 5px; margin-top: 30px; margin-bottom: 10px;">Directorio de Proveedores</h3>
@@ -175,6 +166,10 @@
                                 <input type="number" id="precioPlatillo" placeholder="Ej: 80" required>
                             </div>
                             <div class="admin-form-group">
+                                <label for="stockPlatillo">Stock Inicial (Cantidad disponible)</label>
+                                <input type="number" id="stockPlatillo" placeholder="Ej: 50" required>
+                            </div>
+                            <div class="admin-form-group">
                                 <label for="categoriaPlatillo">Categoría</label>
                                 <select id="categoriaPlatillo">
                                     <option value="PLATILLOS">Platillos</option>
@@ -210,6 +205,11 @@
                     <div class="admin-form-group">
                         <label>Precio ($)</label>
                         <input type="number" id="editPrecio" required>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label>Stock Disponible</label>
+                        <input type="number" id="editStock" required>
                     </div>
 
                     <div class="admin-form-group">
@@ -263,9 +263,7 @@
 
                 document.getElementById('totalPlatillosKpi').innerText = countPlatillos + countBebidas;
 
-                if (myChart) {
-                    myChart.destroy();
-                }
+                if (myChart) myChart.destroy();
 
                 const ctx = document.getElementById('ventasChart').getContext('2d');
                 myChart = new Chart(ctx, {
@@ -274,21 +272,14 @@
                         labels: ['Platillos (Comida)', 'Bebidas'],
                         datasets: [{
                             data: [countPlatillos, countBebidas], 
-                            backgroundColor: [
-                                '#267d46', // Verde Rana
-                                '#f0ad4e'  // Amarillo/Naranja
-                            ],
+                            backgroundColor: ['#267d46', '#f0ad4e'],
                             borderWidth: 2
                         }]
                     },
                     options: { 
                         responsive: true, 
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
-                        }
+                        plugins: { legend: { position: 'bottom' } }
                     }
                 });
             } catch (error) {
@@ -296,12 +287,49 @@
             }
         }
 
-        // --- SISTEMA DE SEGURIDAD PARA ADMINS (CON CORREO) ---
+        // --- INICIALIZAR ALERTAS SCM (TIEMPO REAL) ---
+        async function cargarAlertasSCM() {
+            const scmContainer = document.getElementById('scmAlertsContainer');
+            try {
+                const querySnapshot = await getDocs(collection(db, "menu_items"));
+                let htmlAlertas = '';
+                let productosBajos = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const stock = data.stock !== undefined ? data.stock : 0; 
+
+                    if (stock <= 10) {
+                        productosBajos++;
+                        const isCritico = stock <= 3; // Crítico (Rojo)
+                        // Si está entre 4 y 10 es Holgura/Precaución (Amarillo)
+                        htmlAlertas += `
+                            <div class="kpi-card ${isCritico ? 'alert' : 'warning'}">
+                                <h3>${isCritico ? '⚠️ CRÍTICO:' : '⚠️ HOLGURA:'} ${data.nombre}</h3>
+                                <p>${stock} uds</p>
+                                <small>${isCritico ? 'Reabastecer INMEDIATAMENTE' : 'Programar compra pronto'}</small>
+                            </div>
+                        `;
+                    }
+                });
+
+                if (productosBajos === 0) {
+                    scmContainer.innerHTML = '<p style="color: #267d46; font-weight: bold; grid-column: 1 / -1; text-align: center;">✅ Todo el inventario está en niveles óptimos.</p>';
+                } else {
+                    scmContainer.innerHTML = htmlAlertas;
+                }
+            } catch (error) {
+                console.error("Error cargando SCM:", error);
+            }
+        }
+
+        // --- SISTEMA DE SEGURIDAD PARA ADMINS ---
         async function verificarAccesoAdmin() {
             if (sessionStorage.getItem("adminLogueado") === "true") {
                 document.getElementById("adminDashboard").style.display = "block";
                 cargarInventario();
                 initChart(); 
+                cargarAlertasSCM();
                 return;
             }
 
@@ -320,13 +348,8 @@
                 preConfirm: () => {
                     const email = document.getElementById('swal-email').value;
                     const pass = document.getElementById('swal-pass').value;
-                    
                     if (!email || !pass) {
                         Swal.showValidationMessage('Ingresa el correo y la contraseña');
-                        return false;
-                    }
-                    if (!/\S+@\S+\.\S+/.test(email)) {
-                        Swal.showValidationMessage('Ingresa un formato de correo válido');
                         return false;
                     }
                     return { email, pass };
@@ -353,24 +376,18 @@
                     document.getElementById("adminDashboard").style.display = "block";
                     cargarInventario(); 
                     initChart(); 
+                    cargarAlertasSCM();
                 } else {
                     Swal.fire({
-                        title: 'Acceso Denegado',
-                        text: 'El correo o contraseña son incorrectos.',
-                        icon: 'error',
-                        confirmButtonColor: '#d33'
-                    }).then(() => {
-                        window.location.href = 'index.html'; 
-                    });
+                        title: 'Acceso Denegado', text: 'El correo o contraseña son incorrectos.', icon: 'error', confirmButtonColor: '#d33'
+                    }).then(() => window.location.href = 'index.html');
                 }
             } catch (error) {
-                console.error("Error al verificar admin:", error);
                 Swal.fire('Error de conexión', 'Inténtalo de nuevo más tarde.', 'error').then(() => window.location.href = 'index.html');
             }
         }
 
         verificarAccesoAdmin();
-
 
         // --- LOGICA DEL INVENTARIO ---
         async function cargarInventario() {
@@ -387,17 +404,19 @@
                     const data = documento.data();
                     const id = documento.id;
                     const nombreArchivoImg = data.imagen_url ? data.imagen_url.replace("src/images/", "") : "";
+                    const stock = data.stock !== undefined ? data.stock : 0;
+
                     html += `
                         <div class="inventory-item">
                             <img src="${data.imagen_url}" class="inventory-img" alt="${data.nombre}">
                             <div class="inventory-details">
                                 <h4>${data.nombre}</h4>
-                                <p style="color: #267d46;">$${data.precio}</p>
+                                <p style="color: #267d46;">$${data.precio} | <b>Stock: ${stock}</b></p>
                                 <p style="font-size: 0.8em; font-weight: normal;">${data.categoria}</p>
                             </div>
                             <div class="action-buttons">
                                 <button class="btn-action btn-edit" 
-                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${nombreArchivoImg}')">
+                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${nombreArchivoImg}', ${stock})">
                                     ✏️ Editar
                                 </button>
                                 <button class="btn-action btn-delete" 
@@ -410,57 +429,58 @@
                 });
                 inventoryList.innerHTML = html;
             } catch (error) {
-                console.error("Error:", error);
                 inventoryList.innerHTML = '<p>Error al cargar los platillos.</p>';
             }
         }
 
-        window.abrirModalEditar = (id, nombre, precio, categoria, imagen) => {
+        window.abrirModalEditar = (id, nombre, precio, categoria, imagen, stock) => {
             document.getElementById('editId').value = id;
             document.getElementById('editNombre').value = nombre;
             document.getElementById('editPrecio').value = precio;
             document.getElementById('editCategoria').value = categoria;
             document.getElementById('editImagen').value = imagen;
+            document.getElementById('editStock').value = stock;
             document.getElementById('editModal').classList.add('active');
         };
 
-        window.cerrarModalEditar = () => {
-            document.getElementById('editModal').classList.remove('active');
-        };
+        window.cerrarModalEditar = () => document.getElementById('editModal').classList.remove('active');
 
         document.getElementById('editPlatilloForm').addEventListener('submit', async (e) => {
             e.preventDefault(); 
             const id = document.getElementById('editId').value;
             const nombreNuevo = document.getElementById('editNombre').value;
             const precioNuevo = Number(document.getElementById('editPrecio').value);
+            const stockNuevo = Number(document.getElementById('editStock').value);
             const categoriaNueva = document.getElementById('editCategoria').value;
             const imagenNueva = document.getElementById('editImagen').value;
+            
             try {
                 const platilloRef = doc(db, "menu_items", id);
                 await updateDoc(platilloRef, {
                     nombre: nombreNuevo,
                     precio: precioNuevo,
+                    stock: stockNuevo,
                     categoria: categoriaNueva,
                     imagen_url: "src/images/" + imagenNueva
                 });
                 alert("¡Platillo actualizado correctamente!");
                 cerrarModalEditar();
                 cargarInventario();
-                initChart(); // Recarga la gráfica
+                initChart(); 
+                cargarAlertasSCM();
             } catch (error) {
-                console.error("Error actualizando: ", error);
                 alert("Hubo un error al actualizar el platillo.");
             }
         });
 
         window.borrarPlatillo = async (id, nombre) => {
-            const confirmacion = confirm(`¿Estás seguro de que deseas eliminar "${nombre}" definitivamente?`);
-            if (confirmacion) {
+            if (confirm(`¿Estás seguro de que deseas eliminar "${nombre}" definitivamente?`)) {
                 try {
                     await deleteDoc(doc(db, "menu_items", id));
                     alert(`¡Platillo "${nombre}" eliminado correctamente!`);
                     cargarInventario();
-                    initChart(); // Recarga la gráfica
+                    initChart();
+                    cargarAlertasSCM();
                 } catch (error) {
                     console.error("Error al eliminar: ", error);
                 }
@@ -471,12 +491,14 @@
             e.preventDefault(); 
             const nombre = document.getElementById('nombrePlatillo').value;
             const precio = Number(document.getElementById('precioPlatillo').value);
+            const stock = Number(document.getElementById('stockPlatillo').value);
             const categoria = document.getElementById('categoriaPlatillo').value;
             const imagen = document.getElementById('imagenPlatillo').value;
             try {
                 await addDoc(collection(db, "menu_items"), {
                     nombre: nombre,
                     precio: precio,
+                    stock: stock,
                     categoria: categoria,
                     imagen_url: "src/images/" + imagen,
                     fecha_creacion: new Date()
@@ -484,7 +506,8 @@
                 alert("Éxito!: Platillo agregado correctamente.");
                 document.getElementById('addPlatilloForm').reset(); 
                 cargarInventario();
-                initChart(); // Recarga la gráfica
+                initChart(); 
+                cargarAlertasSCM();
             } catch (e) {
                 console.error("Error añadiendo: ", e);
             }

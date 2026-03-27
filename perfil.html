@@ -159,10 +159,11 @@
             padding: 5px 10px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.5em; 
+            font-size: 0.5em; /* Ajustado para el título */
         }
         .edit-data-btn:hover { background: #0056b3; }
         
+        /* Botón de edición de teléfono (más grande que el del nombre) */
         .edit-phone-btn {
             background: #007bff;
             color: white;
@@ -265,7 +266,7 @@
                 window.location.href = "index.html";
             });
         } else {
-            // CORRECCIÓN: Agregado para sacar solo el primer nombre
+            // CORRECCIÓN APLICADA AQUÍ
             const primerNombre = customerName.trim().split(' '); 
             document.getElementById("textNombre").innerText = "👤 " + primerNombre;
             document.getElementById("displayEmail").innerText = customerEmail;
@@ -347,7 +348,7 @@
                     await updateDoc(clienteRef, { nombre: newName });
                     
                     localStorage.setItem("customerName", newName);
-                    // CORRECCIÓN: Agregado
+                    // CORRECCIÓN APLICADA AQUÍ
                     const primerNombre = newName.trim().split(' ');
                     document.getElementById("textNombre").innerText = "👤 " + primerNombre;
                     
@@ -425,7 +426,7 @@
 
                     if(datos.nombre && datos.nombre !== customerName) {
                         localStorage.setItem("customerName", datos.nombre);
-                        // CORRECCIÓN: Agregado
+                        // CORRECCIÓN APLICADA AQUÍ
                         document.getElementById("textNombre").innerText = "👤 " + datos.nombre.trim().split(' ');
                     }
 
