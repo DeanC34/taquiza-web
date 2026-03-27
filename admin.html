@@ -6,7 +6,6 @@
     <title>Panel de Administración - Taquiza La Rana</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -59,22 +58,20 @@
                     <div class="details-content">
                         <div class="dashboard-grid">
                             <div class="kpi-card">
-                                <h3>Ingresos del Día</h3>
-                                <p>$4,250 MXN</p>
+                                <h3>Total Platillos Registrados</h3>
+                                <p id="totalPlatillosKpi">0</p>
                             </div>
                             <div class="kpi-card">
                                 <h3>Pedidos Atendidos</h3>
-                                <p>38</p>
-                            </div>
+                                <p>38</p> </div>
                             <div class="kpi-card warning">
                                 <h3>Platillo Estrella</h3>
-                                <p style="font-size: 1.5em; line-height: 1.3;">Tacos al Pastor</p>
-                            </div>
+                                <p style="font-size: 1.5em; line-height: 1.3;">Tacos al Pastor</p> </div>
                         </div>
 
                         <div class="dashboard-grid">
                             <div class="chart-container">
-                                <h3 style="text-align: center; color: #333; margin-bottom: 15px;">Ventas por Categoría</h3>
+                                <h3 style="text-align: center; color: #333; margin-bottom: 15px;">Tipos de Platillos</h3>
                                 <canvas id="ventasChart"></canvas>
                             </div>
                         </div>
@@ -179,16 +176,20 @@
                 <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #f0ad4e; padding-bottom: 10px;">
                     ✏️ Actualizar Platillo
                 </h2>
+                
                 <form id="editPlatilloForm">
                     <input type="hidden" id="editId">
+
                     <div class="admin-form-group">
                         <label>Nombre del Platillo</label>
                         <input type="text" id="editNombre" required>
                     </div>
+
                     <div class="admin-form-group">
                         <label>Precio ($)</label>
                         <input type="number" id="editPrecio" required>
                     </div>
+
                     <div class="admin-form-group">
                         <label>Categoría</label>
                         <select id="editCategoria">
@@ -196,10 +197,12 @@
                             <option value="BEBIDAS">Bebidas</option>
                         </select>
                     </div>
+
                     <div class="admin-form-group">
-                        <label>Nombre de la Imagen</label>
+                        <label>Nombre de la Imagen (debe estar en src/images/)</label>
                         <input type="text" id="editImagen" required>
                     </div>
+
                     <button type="submit" class="admin-submit-btn btn-update">💾 Guardar Cambios</button>
                 </form>
             </div>
@@ -221,34 +224,57 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- INICIALIZAR GRÁFICO ERP ---
-        function initChart() {
-            const ctx = document.getElementById('ventasChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Tacos', 'Tortas', 'Caguamas', 'Refrescos'],
-                    datasets: [{
-                        data:,
-                        backgroundColor: [
-                            '#267d46', // Verde Rana
-                            '#f0ad4e', // Amarillo/Naranja
-                            '#f5576c', // Rojo/Rosa
-                            '#34495e'  // Gris Oscuro
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+        let myChart = null; // Variable global para guardar el gráfico
+
+        // --- INICIALIZAR GRÁFICO ERP DINÁMICO ---
+        async function initChart() {
+            try {
+                // Leemos los datos reales de tu base de datos para la gráfica
+                const querySnapshot = await getDocs(collection(db, "menu_items"));
+                let countPlatillos = 0;
+                let countBebidas = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.categoria === "PLATILLOS") countPlatillos++;
+                    if (data.categoria === "BEBIDAS") countBebidas++;
+                });
+
+                // Actualizamos la tarjeta de total de platillos
+                document.getElementById('totalPlatillosKpi').innerText = countPlatillos + countBebidas;
+
+                // Destruimos el gráfico viejo si existe para no encimar colores
+                if (myChart) {
+                    myChart.destroy();
+                }
+
+                const ctx = document.getElementById('ventasChart').getContext('2d');
+                myChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Platillos (Comida)', 'Bebidas'],
+                        datasets: [{
+                            data: [countPlatillos, countBebidas], // Datos Reales
+                            backgroundColor: [
+                                '#267d46', // Verde Rana
+                                '#f0ad4e'  // Amarillo/Naranja
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch (error) {
+                console.error("Error cargando gráfica:", error);
+            }
         }
 
-        // --- SISTEMA DE SEGURIDAD PARA ADMINS ---
+        // --- SISTEMA DE SEGURIDAD PARA ADMINS (CON CORREO) ---
         async function verificarAccesoAdmin() {
             if (sessionStorage.getItem("adminLogueado") === "true") {
                 document.getElementById("adminDashboard").style.display = "block";
                 cargarInventario();
-                initChart(); // Inicia el gráfico si ya está logueado
+                initChart(); // Iniciar gráfica
                 return;
             }
 
@@ -257,18 +283,33 @@
                 html:
                     '<input id="swal-email" type="email" class="swal2-input" placeholder="Correo Administrativo">' +
                     '<input id="swal-pass" type="password" class="swal2-input" placeholder="Contraseña">',
-                focusConfirm: false, allowOutsideClick: false, allowEscapeKey: false, showCancelButton: true,
-                cancelButtonText: 'Volver a la Tienda', confirmButtonText: 'Entrar', confirmButtonColor: '#267d46',
+                focusConfirm: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showCancelButton: true,
+                cancelButtonText: 'Volver a la Tienda',
+                confirmButtonText: 'Entrar',
+                confirmButtonColor: '#267d46',
                 preConfirm: () => {
                     const email = document.getElementById('swal-email').value;
                     const pass = document.getElementById('swal-pass').value;
-                    if (!email || !pass) { Swal.showValidationMessage('Ingresa el correo y la contraseña'); return false; }
-                    if (!/\S+@\S+\.\S+/.test(email)) { Swal.showValidationMessage('Ingresa un formato de correo válido'); return false; }
+                    
+                    if (!email || !pass) {
+                        Swal.showValidationMessage('Ingresa el correo y la contraseña');
+                        return false;
+                    }
+                    if (!/\S+@\S+\.\S+/.test(email)) {
+                        Swal.showValidationMessage('Ingresa un formato de correo válido');
+                        return false;
+                    }
                     return { email, pass };
                 }
             });
 
-            if (!formValues) { window.location.href = 'index.html'; return; }
+            if (!formValues) {
+                window.location.href = 'index.html';
+                return;
+            }
 
             Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
@@ -278,13 +319,22 @@
 
                 if (adminSnap.exists() && adminSnap.data().password === formValues.pass) {
                     sessionStorage.setItem("adminLogueado", "true");
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '¡Bienvenido Administrador!', showConfirmButton: false, timer: 2000 });
+                    Swal.fire({
+                        toast: true, position: 'top-end', icon: 'success', 
+                        title: '¡Bienvenido Administrador!', showConfirmButton: false, timer: 2000
+                    });
                     document.getElementById("adminDashboard").style.display = "block";
                     cargarInventario(); 
-                    initChart(); // Inicia el gráfico al loguearse con éxito
+                    initChart(); // Iniciar gráfica
                 } else {
-                    Swal.fire({ title: 'Acceso Denegado', text: 'El correo o contraseña son incorrectos.', icon: 'error', confirmButtonColor: '#d33' })
-                        .then(() => { window.location.href = 'index.html'; });
+                    Swal.fire({
+                        title: 'Acceso Denegado',
+                        text: 'El correo o contraseña son incorrectos.',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    }).then(() => {
+                        window.location.href = 'index.html'; 
+                    });
                 }
             } catch (error) {
                 console.error("Error al verificar admin:", error);
@@ -292,7 +342,9 @@
             }
         }
 
+        // Ejecutamos la seguridad apenas carga la página
         verificarAccesoAdmin();
+
 
         // --- LOGICA DEL INVENTARIO (REAL) ---
         async function cargarInventario() {
@@ -306,7 +358,8 @@
                 }
                 let html = '';
                 querySnapshot.forEach((documento) => {
-                    const data = documento.data(); const id = documento.id;
+                    const data = documento.data();
+                    const id = documento.id;
                     const nombreArchivoImg = data.imagen_url ? data.imagen_url.replace("src/images/", "") : "";
                     html += `
                         <div class="inventory-item">
@@ -317,33 +370,61 @@
                                 <p style="font-size: 0.8em; font-weight: normal;">${data.categoria}</p>
                             </div>
                             <div class="action-buttons">
-                                <button class="btn-action btn-edit" onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${nombreArchivoImg}')">✏️ Editar</button>
-                                <button class="btn-action btn-delete" onclick="borrarPlatillo('${id}', '${data.nombre}')">🗑️ Eliminar</button>
+                                <button class="btn-action btn-edit" 
+                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${nombreArchivoImg}')">
+                                    ✏️ Editar
+                                </button>
+                                <button class="btn-action btn-delete" 
+                                    onclick="borrarPlatillo('${id}', '${data.nombre}')">
+                                    🗑️ Eliminar
+                                </button>
                             </div>
-                        </div>`;
+                        </div>
+                    `;
                 });
                 inventoryList.innerHTML = html;
-            } catch (error) { console.error("Error:", error); inventoryList.innerHTML = '<p>Error al cargar los platillos.</p>'; }
+            } catch (error) {
+                console.error("Error:", error);
+                inventoryList.innerHTML = '<p>Error al cargar los platillos.</p>';
+            }
         }
 
         window.abrirModalEditar = (id, nombre, precio, categoria, imagen) => {
-            document.getElementById('editId').value = id; document.getElementById('editNombre').value = nombre;
-            document.getElementById('editPrecio').value = precio; document.getElementById('editCategoria').value = categoria;
-            document.getElementById('editImagen').value = imagen; document.getElementById('editModal').classList.add('active');
+            document.getElementById('editId').value = id;
+            document.getElementById('editNombre').value = nombre;
+            document.getElementById('editPrecio').value = precio;
+            document.getElementById('editCategoria').value = categoria;
+            document.getElementById('editImagen').value = imagen;
+            document.getElementById('editModal').classList.add('active');
         };
 
-        window.cerrarModalEditar = () => { document.getElementById('editModal').classList.remove('active'); };
+        window.cerrarModalEditar = () => {
+            document.getElementById('editModal').classList.remove('active');
+        };
 
         document.getElementById('editPlatilloForm').addEventListener('submit', async (e) => {
             e.preventDefault(); 
-            const id = document.getElementById('editId').value; const nombreNuevo = document.getElementById('editNombre').value;
-            const precioNuevo = Number(document.getElementById('editPrecio').value); const categoriaNueva = document.getElementById('editCategoria').value;
+            const id = document.getElementById('editId').value;
+            const nombreNuevo = document.getElementById('editNombre').value;
+            const precioNuevo = Number(document.getElementById('editPrecio').value);
+            const categoriaNueva = document.getElementById('editCategoria').value;
             const imagenNueva = document.getElementById('editImagen').value;
             try {
                 const platilloRef = doc(db, "menu_items", id);
-                await updateDoc(platilloRef, { nombre: nombreNuevo, precio: precioNuevo, categoria: categoriaNueva, imagen_url: "src/images/" + imagenNueva });
-                Swal.fire('¡Actualizado!', 'Platillo actualizado correctamente.', 'success'); cerrarModalEditar(); cargarInventario(); 
-            } catch (error) { console.error("Error actualizando: ", error); Swal.fire('Error', 'Hubo un error al actualizar el platillo.', 'error'); }
+                await updateDoc(platilloRef, {
+                    nombre: nombreNuevo,
+                    precio: precioNuevo,
+                    categoria: categoriaNueva,
+                    imagen_url: "src/images/" + imagenNueva
+                });
+                alert("¡Platillo actualizado correctamente!");
+                cerrarModalEditar();
+                cargarInventario();
+                initChart(); // Recarga la gráfica
+            } catch (error) {
+                console.error("Error actualizando: ", error);
+                alert("Hubo un error al actualizar el platillo.");
+            }
         });
 
         window.borrarPlatillo = async (id, nombre) => {
@@ -351,19 +432,36 @@
             if (confirmacion) {
                 try {
                     await deleteDoc(doc(db, "menu_items", id));
-                    Swal.fire('¡Eliminado!', `Platillo "${nombre}" eliminado correctamente.`, 'success'); cargarInventario();
-                } catch (error) { console.error("Error al eliminar: ", error); }
+                    alert(`¡Platillo "${nombre}" eliminado correctamente!`);
+                    cargarInventario();
+                    initChart(); // Recarga la gráfica
+                } catch (error) {
+                    console.error("Error al eliminar: ", error);
+                }
             }
         };
 
         document.getElementById('addPlatilloForm').addEventListener('submit', async (e) => {
             e.preventDefault(); 
-            const nombre = document.getElementById('nombrePlatillo').value; const precio = Number(document.getElementById('precioPlatillo').value);
-            const categoria = document.getElementById('categoriaPlatillo').value; const imagen = document.getElementById('imagenPlatillo').value;
+            const nombre = document.getElementById('nombrePlatillo').value;
+            const precio = Number(document.getElementById('precioPlatillo').value);
+            const categoria = document.getElementById('categoriaPlatillo').value;
+            const imagen = document.getElementById('imagenPlatillo').value;
             try {
-                await addDoc(collection(db, "menu_items"), { nombre: nombre, precio: precio, categoria: categoria, imagen_url: "src/images/" + imagen, fecha_creacion: new Date() });
-                Swal.fire('¡Éxito!', 'Platillo agregado correctamente.', 'success'); document.getElementById('addPlatilloForm').reset(); cargarInventario();
-            } catch (e) { console.error("Error añadiendo: ", e); }
+                await addDoc(collection(db, "menu_items"), {
+                    nombre: nombre,
+                    precio: precio,
+                    categoria: categoria,
+                    imagen_url: "src/images/" + imagen,
+                    fecha_creacion: new Date()
+                });
+                alert("Éxito!: Platillo agregado correctamente.");
+                document.getElementById('addPlatilloForm').reset(); 
+                cargarInventario();
+                initChart(); // Recarga la gráfica
+            } catch (e) {
+                console.error("Error añadiendo: ", e);
+            }
         });
     </script>
 </body>
