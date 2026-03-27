@@ -22,9 +22,13 @@
         .kpi-card.alert { background: linear-gradient(135deg, #f5576c 0%, #d62f2f 100%); }
         .kpi-card.warning { background: linear-gradient(135deg, #f0ad4e 0%, #d3913a 100%); color: #333;}
         
+        /* CORRECCIÓN DE LA GRÁFICA AQUÍ */
         .chart-container {
             background: white; padding: 20px; border-radius: 10px; border: 1px solid #eee;
             margin-top: 20px; max-width: 400px; margin: 20px auto;
+            position: relative; /* Necesario para que Chart.js respete los límites */
+            height: 300px; /* Altura fija para evitar el crecimiento infinito */
+            width: 100%;
         }
         
         .table-container { overflow-x: auto; margin-top: 15px; }
@@ -63,10 +67,12 @@
                             </div>
                             <div class="kpi-card">
                                 <h3>Pedidos Atendidos</h3>
-                                <p>38</p> </div>
+                                <p>38</p> 
+                            </div>
                             <div class="kpi-card warning">
                                 <h3>Platillo Estrella</h3>
-                                <p style="font-size: 1.5em; line-height: 1.3;">Tacos al Pastor</p> </div>
+                                <p style="font-size: 1.5em; line-height: 1.3;">Tacos al Pastor</p> 
+                            </div>
                         </div>
 
                         <div class="dashboard-grid">
