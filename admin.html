@@ -22,13 +22,9 @@
         .kpi-card.alert { background: linear-gradient(135deg, #f5576c 0%, #d62f2f 100%); }
         .kpi-card.warning { background: linear-gradient(135deg, #f0ad4e 0%, #d3913a 100%); color: #333;}
         
-        /* CORRECCIÓN DE LA GRÁFICA AQUÍ */
         .chart-container {
             background: white; padding: 20px; border-radius: 10px; border: 1px solid #eee;
             margin-top: 20px; max-width: 400px; margin: 20px auto;
-            position: relative; /* Necesario para que Chart.js respete los límites */
-            height: 300px; /* Altura fija para evitar el crecimiento infinito */
-            width: 100%;
         }
         
         .table-container { overflow-x: auto; margin-top: 15px; }
@@ -78,7 +74,9 @@
                         <div class="dashboard-grid">
                             <div class="chart-container">
                                 <h3 style="text-align: center; color: #333; margin-bottom: 15px;">Tipos de Platillos</h3>
-                                <canvas id="ventasChart"></canvas>
+                                <div style="position: relative; height: 250px; width: 100%;">
+                                    <canvas id="ventasChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
