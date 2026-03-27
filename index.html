@@ -1,251 +1,152 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Perfil - Taquiza La Rana</title>
+    <title>Menú Digital - Taquiza La Rana</title>
+    
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <style>
-        .profile-container {
-            padding: 20px;
-        }
-
-        .profile-header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #eee;
-        }
-
-        .profile-name {
-            font-size: 2em;
-            color: #267d46;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .profile-email {
-            color: #666;
-            font-size: 1.1em;
-        }
-
-        /* Tarjeta de Taqui-Puntos */
-        .points-card {
-            background: linear-gradient(135deg, #f5576c 0%, #d62f2f 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 20px rgba(214, 47, 47, 0.3);
-            margin-bottom: 30px;
-        }
-
-        .points-number {
-            font-size: 4em;
-            font-weight: bold;
-            margin: 10px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .btn-canjear {
-            background: white;
-            color: #d62f2f;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .btn-canjear:hover {
-            transform: scale(1.05);
-        }
-
-        /* Historial y Preferencias */
-        .section-title {
-            color: #333;
-            border-bottom: 2px solid #267d46;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .history-list {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 30px;
-        }
-
-        .history-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 5px solid #267d46;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .promo-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fff9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #f5576c;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px; width: 26px;
-            left: 4px; bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider { background-color: #267d46; }
-        input:checked + .slider:before { transform: translateX(26px); }
-        
-        .back-btn { background: #666; margin-bottom: 20px; }
-
-        /* Estilos Verificación y Edición de datos */
-        .verification-box {
-            background: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .verified-box {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .edit-data-btn {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.5em; /* Ajustado para el título */
-        }
-        .edit-data-btn:hover { background: #0056b3; }
-        
-        /* Botón de edición de teléfono (más grande que el del nombre) */
-        .edit-phone-btn {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            margin-left: 10px;
-        }
-        .edit-phone-btn:hover { background: #0056b3; }
-        
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            display: block;
-            margin: 30px auto 0;
-            transition: background 0.3s;
-        }
-        .logout-btn:hover { background: #c82333; }
-    </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            //Public Key de EmailJS
+            emailjs.init({
+              publicKey: "VEBTN4e8bCw4QSzDx",
+            });
+        })();
+    </script>
+    
+    <script type="module" src="js/crm.js?v=12"></script>
 </head>
-<body>
 
-    <div class="menu-dropdown">
-        <button onclick="window.location.href='index.html'" class="menu-btn back-btn" style="background: #666;">
-            ⬅️ Volver al Menú
-        </button>
+<body>
+    <div class="top-menu-bar">
+        
+        <div class="menu-dropdown">
+            <button onclick="toggleMenu()" class="menu-btn">☰</button>
+            <div id="dropdownMenu" class="dropdown-content">
+                <button onclick="goToProfile()">👤 Perfil</button>
+                <button onclick="goToSettings()">⚙️ Ajustes</button>
+                <button onclick="goToAdmin()">🛠️ Administrador</button>
+            </div>
+        </div>
+
+        <div class="user-dropdown">
+            <button onclick="openLoginModal()" class="menu-btn" id="userLoginBtn" style="background: #267d46;">
+                👤 Acceder
+            </button>
+            <button onclick="cerrarSesion()" class="menu-btn" id="userLogoutBtn" style="background: #d62f2f; display: none; margin-left: 10px;">
+                Cerrar Sesión
+            </button>
+        </div>
+
     </div>
 
-    <div class="container" style="margin-top: 70px; padding-bottom: 50px;">
-        <div class="profile-container">
-            <div class="profile-header">
-                <h1 class="profile-name" id="displayNombre">
-                    <span id="textNombre">Cargando...</span>
-                    <button class="edit-data-btn" onclick="editarNombre()">✏️ Editar</button>
-                </h1>
-                <p class="profile-email" id="displayEmail">Cargando...</p>
-                <p id="displayPhone" style="color: #267d46; font-weight: bold; margin-top: 5px; display: flex; align-items: center; justify-content: center;">
-                    Cargando teléfono...
+    <div class="container" style="margin-top: 80px; min-height: 70vh;">
+        <div class="header">
+            <img src="src/images/LOGO.jpg" class="logo">
+            <h1>Taquiza La Rana</h1>
+            <p>Menú Digital - ¡Ordena Fácil!</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="🔎 Buscar..." onkeyup="searchProducts()">
+        </div>
+
+        <div class="menu-container">
+            <div class="category">
+                <h2 class="category-title">⭐ Recomendados para ti</h2>
+                <div class="products" id="recommendedProducts"></div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🍽️ PLATILLOS</h2>
+                <div class="products" id="platillos-container">
+                    <p>Cargando deliciosos platillos...</p>
+                </div>
+            </div>
+
+            <div class="category">
+                <h2 class="category-title">🥤 BEBIDAS</h2>
+                <div class="products" id="bebidas-container">
+                    <p>Cargando bebidas refrescantes...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer style="background-color: #2c3e50; color: #ecf0f1; padding: 40px 20px 20px 20px; text-align: center; border-top: 5px solid #267d46; margin-top: 40px;">
+        <div style="max-width: 800px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
+            
+            <div style="flex: 1; min-width: 250px;">
+                <h3 style="color: #f0ad4e; margin-bottom: 15px;">🐸 Acerca de Nosotros</h3>
+                <p style="font-size: 0.9em; line-height: 1.5; color: #bdc3c7;">
+                    En <b>La Taquiza de La Rana</b> preparamos todo con ingredientes frescos y el auténtico sabor que te hará dar saltos de alegría. ¡Gracias por tu preferencia!
                 </p>
             </div>
 
-            <div id="verificationContainer"></div>
-
-            <div class="points-card">
-                <h2>⭐ Mis Taqui-Puntos</h2>
-                <div class="points-number" id="displayPuntos">0</div>
-                <p>1 Punto = $10 MXN en compras</p>
-                <button class="btn-canjear" onclick="canjearPuntos()">🎁 Canjear por Agua Gratis (50 pts)</button>
+            <div style="flex: 1; min-width: 250px;">
+                <h3 style="color: #f0ad4e; margin-bottom: 15px;">📞 Contáctanos</h3>
+                <p style="margin-bottom: 10px; font-size: 1.1em;">
+                    <a href="mailto:taquizalarana@gmail.com" style="color: #ecf0f1; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#f0ad4e'" onmouseout="this.style.color='#ecf0f1'">
+                        📧 taquizalarana@gmail.com
+                    </a>
+                </p>
+                <p style="font-size: 1.1em;">
+                    <a href="https://www.facebook.com/p/La-Taquiza-de-la-Rana-61561371606540/" target="_blank" style="color: #ecf0f1; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#3b5998'" onmouseout="this.style.color='#ecf0f1'">
+                        📘 Síguenos en Facebook
+                    </a>
+                </p>
             </div>
 
-            <h2 class="section-title">📦 Mi Historial de Pedidos</h2>
-            <div class="history-list" id="displayHistorial">
-                <p style="text-align: center; color: #666;">Cargando historial desde la nube...</p>
+        </div>
+        
+        <div style="margin-top: 30px; border-top: 1px solid #34495e; padding-top: 20px; font-size: 0.8em; color: #95a5a6;">
+            &copy; 2026 Taquiza La Rana. Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <script src="js/cart.js"></script>
+
+    <div class="cart-float" onclick="toggleCart()">
+        🛒 Mi Pedido <span class="cart-badge" id="cartCount">0</span>
+    </div>
+
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-content">
+            <div class="cart-header">
+                <h2>🛒 Mi Pedido</h2>
+                <button class="close-btn" onclick="toggleCart()">×</button>
+            </div>
+            
+            <div id="cartItems"></div>
+            
+            <div class="cart-total" id="cartTotal">
+                Total: $0
             </div>
 
-            <h2 class="section-title">💌 Promociones Especiales</h2>
-            <div class="promo-toggle">
-                <div>
-                    <h3 style="color: #333; margin-bottom: 5px;">Recibir Cupones y Ofertas</h3>
-                    <p style="color: #666; font-size: 0.9em; margin: 0;">Te enviaremos descuentos exclusivos a tu correo.</p>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="promoSwitch">
-                    <span class="slider"></span>
-                </label>
+            <div id="orderStatus" style="display:none; text-align:center; margin: 15px 0; font-size: 1.2em; font-weight:bold; color: #267d46;">
+                ⏳ Procesando...
             </div>
-
-            <button class="logout-btn" onclick="cerrarSesion()">Cerrar Sesión</button>
+            
+            <button class="whatsapp-btn" onclick="sendToWhatsApp()">
+                📱 Ordenar por WhatsApp
+            </button>
+            
+            <button class="web-order-btn" onclick="processWebOrder()" 
+                style="width: 100%; padding: 18px; background: #f0ad4e; color: #333; border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 10px; transition: all 0.3s ease;">
+                💳 Pagar en Línea (Acumula Puntos)
+            </button>
         </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        // Añadimos collection, query, where y getDocs para poder buscar el teléfono duplicado
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        // 1. Agregamos getApps y getApp en la importación
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
@@ -256,272 +157,162 @@
             appId: "1:475601236604:web:775b368768e9822789cff9"
         };
 
-        const app = initializeApp(firebaseConfig);
+        // 2. Protegemos la inicialización
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const db = getFirestore(app);
 
-        const customerEmail = localStorage.getItem("customerEmail");
-        const customerName = localStorage.getItem("customerName");
-
-        if (!customerEmail) {
-            Swal.fire('Atención', 'Debes iniciar sesión para ver tu perfil.', 'warning').then(() => {
-                window.location.href = "index.html";
-            });
-        } else {
-            // CORRECCIÓN: Agregamos al final del split para tomar solo el primer nombre
-            const primerNombre = customerName.trim().split(' '); 
-            document.getElementById("textNombre").innerText = "👤 " + primerNombre;
-            document.getElementById("displayEmail").innerText = customerEmail;
-            
-            cargarPerfilCRM();
-            verificarEstadoEmail();
-        }
-
-        function verificarEstadoEmail() {
-            const isVerified = localStorage.getItem("emailVerified") === "true";
-            const container = document.getElementById("verificationContainer");
-
-            if (isVerified) {
-                container.innerHTML = `
-                    <div class="verified-box">
-                        ✅ Tu correo está verificado. ¡Ya puedes acumular Taqui-Puntos!
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div class="verification-box">
-                        ⚠️ Tu correo no está verificado. No podrás acumular puntos hasta que ingreses el código que te enviamos.<br>
-                        <button onclick="ingresarCodigoVerificacion()" style="margin-top: 10px; background:#856404; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">Ingresar Código</button>
-                    </div>
-                `;
-            }
-        }
-
-        window.ingresarCodigoVerificacion = async () => {
-            const { value: code } = await Swal.fire({
-                title: 'Verificación de Correo',
-                input: 'text',
-                inputLabel: 'Ingresa el código de 6 dígitos que enviamos a tu correo.',
-                inputPlaceholder: '123456',
-                showCancelButton: true,
-                confirmButtonColor: '#267d46',
-                inputValidator: (value) => {
-                    if (!value) return 'Necesitas ingresar un código';
-                }
-            });
-
-            if (code) {
-                const storedCode = localStorage.getItem("verifyCode");
-                if (code === storedCode) {
-                    localStorage.setItem("emailVerified", "true");
-                    
-                    try {
-                        const clienteRef = doc(db, "clientes", customerEmail);
-                        await updateDoc(clienteRef, { correoVerificado: true });
-                    } catch (e) { console.log("Aún no hay doc en DB", e) }
-
-                    Swal.fire('¡Verificado!', 'Tu cuenta ha sido verificada con éxito.', 'success');
-                    verificarEstadoEmail();
-                } else {
-                    Swal.fire('Error', 'El código es incorrecto. Intenta nuevamente.', 'error');
-                }
-            }
-        };
-
-        // --- NUEVA FUNCIÓN PARA EDITAR NOMBRE ---
-        window.editarNombre = async () => {
-            const actual = localStorage.getItem("customerName") || "";
-            const { value: newName } = await Swal.fire({
-                title: 'Actualizar Nombre',
-                input: 'text',
-                inputValue: actual,
-                inputPlaceholder: 'Ingresa tu nombre completo',
-                showCancelButton: true,
-                confirmButtonColor: '#267d46',
-                inputValidator: (value) => {
-                    if (!value) return '¡Necesitamos saber cómo llamarte!';
-                }
-            });
-
-            if (newName && newName !== actual) {
-                // Estado de carga
-                Swal.fire({ title: 'Actualizando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                
-                try {
-                    const clienteRef = doc(db, "clientes", customerEmail);
-                    await updateDoc(clienteRef, { nombre: newName });
-                    
-                    localStorage.setItem("customerName", newName);
-                    // CORRECCIÓN AQUÍ TAMBIÉN:
-                    const primerNombre = newName.trim().split(' ');
-                    document.getElementById("textNombre").innerText = "👤 " + primerNombre;
-                    
-                    Swal.fire('¡Actualizado!', 'Tu nombre se guardó correctamente.', 'success');
-                } catch (e) {
-                    console.log("No se pudo actualizar en DB", e);
-                    Swal.fire('Error', 'No pudimos actualizar tu nombre. Intenta más tarde.', 'error');
-                }
-            }
-        };
-
-        // --- FUNCIÓN DE TELÉFONO ACTUALIZADA CON VALIDACIÓN ---
-        window.editarTelefono = async () => {
-            const actual = localStorage.getItem("customerPhone") || "";
-            const { value: phone } = await Swal.fire({
-                title: 'Actualizar Teléfono',
-                input: 'tel',
-                inputValue: actual,
-                inputPlaceholder: 'Ej: 9611234567',
-                showCancelButton: true,
-                confirmButtonColor: '#267d46',
-                inputValidator: (value) => {
-                    if (!value) return '¡Necesitamos tu número para los envíos!';
-                }
-            });
-
-            if (phone && phone !== actual) {
-                Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                
-                try {
-                    // Verificamos si alguien más ya tiene este número
-                    const clientesRef = collection(db, "clientes");
-                    const q = query(clientesRef, where("telefono", "==", phone));
-                    const querySnapshot = await getDocs(q);
-
-                    let duplicado = false;
-                    querySnapshot.forEach((doc) => {
-                        // Si encontramos el teléfono, pero NO es el documento del usuario actual
-                        if(doc.id !== customerEmail) {
-                            duplicado = true;
-                        }
-                    });
-
-                    if (duplicado) {
-                        Swal.fire('Número en uso', 'Ese número de teléfono ya está registrado en otra cuenta.', 'warning');
-                        return; // Detenemos la actualización
-                    }
-
-                    // Si no está duplicado, actualizamos
-                    const clienteRef = doc(db, "clientes", customerEmail);
-                    await updateDoc(clienteRef, { telefono: phone });
-                    
-                    localStorage.setItem("customerPhone", phone);
-                    document.getElementById("displayPhone").innerHTML = `📱 ${phone} <button class="edit-phone-btn" onclick="editarTelefono()">Editar</button>`;
-                    Swal.fire('¡Actualizado!', 'Tu teléfono se guardó correctamente.', 'success');
-                    
-                } catch (e) {
-                    console.log("Error al verificar/actualizar teléfono en DB", e);
-                    Swal.fire('Error', 'Hubo un problema al guardar tu número.', 'error');
-                }
-            }
-        };
-
-        async function cargarPerfilCRM() {
+        async function cargarMenu() {
             try {
-                const clienteRef = doc(db, "clientes", customerEmail);
-                const clienteSnap = await getDoc(clienteRef);
-                const phoneLocal = localStorage.getItem("customerPhone") || "";
+                const querySnapshot = await getDocs(collection(db, "menu_items"));
+                const platillosContainer = document.getElementById("platillos-container");
+                const bebidasContainer = document.getElementById("bebidas-container");
 
-                document.getElementById("displayPhone").innerHTML = `📱 ${phoneLocal || "Sin número"} <button class="edit-phone-btn" onclick="editarTelefono()">Editar</button>`;
+                platillosContainer.innerHTML = "";
+                bebidasContainer.innerHTML = "";
+
+                querySnapshot.forEach((documento) => {
+                    const data = documento.data(); 
+                    
+                    const productHTML = `
+                        <div class="product-card">
+                            <div class="product-image">
+                                <img src="${data.imagen_url}">
+                            </div>
+                            <div class="product-name">${data.nombre}</div>
+                            <div class="product-price">$${data.precio}</div>
+                            <button class="add-btn"
+                                onclick="addToCart('${data.nombre}', ${data.precio})">
+                                Agregar
+                            </button>
+                        </div>
+                    `;
+
+                    if(data.categoria === "PLATILLOS") {
+                        platillosContainer.innerHTML += productHTML;
+                    } else if (data.categoria === "BEBIDAS") {
+                        bebidasContainer.innerHTML += productHTML;
+                    }
+                });
+            } catch (error) {
+                console.error("Error al cargar el menú:", error);
+                document.getElementById("platillos-container").innerHTML = "<p>Error al cargar el menú.</p>";
+            }
+        }
+
+        cargarMenu();
+
+        // PUENTE CRM Y VALIDACIÓN DE PAGO
+        window.guardarPedidoEnCRM = async (carritoTerminado, totalPagado) => {
+            const email = localStorage.getItem("customerEmail");
+            const nombre = localStorage.getItem("customerName");
+            const phone = localStorage.getItem("customerPhone");
+            const isVerified = localStorage.getItem("emailVerified") === "true";
+            
+            // 1. Validar que tenga sesión
+            if (!email || !nombre) {
+                Swal.fire('Error', 'Debes iniciar sesión para pagar en línea.', 'error');
+                return;
+            }
+
+            // 2. Validar que tenga teléfono
+            if (!phone) {
+                Swal.fire({
+                    title: 'Falta tu teléfono',
+                    text: 'Para pagar en línea y entregar tu pedido necesitamos un número de WhatsApp.',
+                    icon: 'warning',
+                    confirmButtonText: 'Ir al Perfil',
+                    confirmButtonColor: '#f0ad4e'
+                }).then(() => {
+                    window.location.href = 'perfil.html';
+                });
+                return;
+            }
+
+            // 3. Validar que el correo esté verificado para dar puntos
+            if (!isVerified) {
+                Swal.fire({
+                    title: '¡Casi listo!',
+                    text: 'Procesaremos tu pago, pero para ganar Taqui-Puntos necesitas verificar tu correo electrónico.',
+                    icon: 'warning',
+                    confirmButtonText: 'Ir a Verificar',
+                    confirmButtonColor: '#f5576c',
+                    showCancelButton: true,
+                    cancelButtonText: 'Pagar sin puntos'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'perfil.html';
+                        return; // Detiene el pago y lo manda al perfil
+                    } else {
+                        // Si elige pagar sin puntos, solo lanzamos alerta de éxito y no guardamos en Firebase
+                        Swal.fire('¡Pago Exitoso!', 'Tu pedido está en cocina. No se acumularon puntos.', 'success');
+                    }
+                });
+                return; // Importante: Salir si no está verificado
+            }
+
+            // Si pasa todo, procede a Firebase y envia correo
+            const clienteRef = doc(db, "clientes", email);
+            try {
+                const clienteSnap = await getDoc(clienteRef);
+                const puntosGanados = Math.floor(totalPagado / 10);
+                const fechaActual = new Date().toLocaleDateString("es-MX") + " " + new Date().toLocaleTimeString("es-MX", {hour: '2-digit', minute:'2-digit'});
+                const detallePedido = carritoTerminado.map(item => `${item.quantity}x ${item.name}`).join(", ");
+
+                const nuevoPedido = {
+                    fecha: fechaActual,
+                    detalle: detallePedido,
+                    total: totalPagado
+                };
 
                 if (clienteSnap.exists()) {
                     const datos = clienteSnap.data();
+                    const puntosActuales = datos.puntos || 0;
+                    const historialActual = datos.historial || [];
                     
-                    if (datos.telefono && !phoneLocal) {
-                        localStorage.setItem("customerPhone", datos.telefono);
-                        document.getElementById("displayPhone").innerHTML = `📱 ${datos.telefono} <button class="edit-phone-btn" onclick="editarTelefono()">Editar</button>`;
-                    }
-
-                    // Actualizar el nombre local si es distinto al de la base de datos (por seguridad)
-                    if(datos.nombre && datos.nombre !== customerName) {
-                        localStorage.setItem("customerName", datos.nombre);
-                        // CORRECCIÓN AQUÍ TAMBIÉN:
-                        document.getElementById("textNombre").innerText = "👤 " + datos.nombre.trim().split(' ');
-                    }
-
-                    document.getElementById("displayPuntos").innerText = datos.puntos || 0;
-                    document.getElementById("promoSwitch").checked = datos.suscrito_promos || false;
-
-                    const historialDiv = document.getElementById("displayHistorial");
-                    if (datos.historial && datos.historial.length > 0) {
-                        let html = "";
-                        datos.historial.slice().reverse().forEach(pedido => {
-                            html += `
-                                <div class="history-item">
-                                    <h4 style="color: #267d46; margin: 0 0 5px 0;">${pedido.fecha}</h4>
-                                    <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #555;">${pedido.detalle}</p>
-                                    <strong style="color: #d62f2f;">Total: $${pedido.total}</strong>
-                                </div>
-                            `;
-                        });
-                        historialDiv.innerHTML = html;
-                    } else {
-                        historialDiv.innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados.</p>";
-                    }
-
+                    historialActual.push(nuevoPedido);
+                    
+                    await updateDoc(clienteRef, {
+                        puntos: puntosActuales + puntosGanados,
+                        historial: historialActual
+                    });
                 } else {
-                    document.getElementById("displayHistorial").innerHTML = "<p style='text-align: center; color: #666;'>Aún no tienes pedidos registrados en la nube.</p>";
-                }
-            } catch (error) {
-                console.error("Error al cargar perfil:", error);
-            }
-        }
-
-        document.getElementById("promoSwitch").addEventListener("change", async (e) => {
-            const isChecked = e.target.checked;
-            localStorage.setItem("promoSubscribed", isChecked ? "true" : "false");
-            const clienteRef = doc(db, "clientes", customerEmail);
-            
-            try {
-                await updateDoc(clienteRef, { suscrito_promos: isChecked });
-                if(isChecked){
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '¡Suscrito a promociones!', showConfirmButton: false, timer: 3000 });
-                }
-            } catch (error) {
-                console.error("Error al actualizar preferencias:", error);
-            }
-        });
-
-        window.canjearPuntos = () => {
-            const puntosActuales = parseInt(document.getElementById("displayPuntos").innerText);
-            if(puntosActuales >= 50) {
-                Swal.fire('¡Felicidades!', 'Tienes suficientes puntos. Muestra este mensaje en caja o envíalo por WhatsApp con tu próximo pedido para reclamar tu jarra de agua.', 'success');
-            } else {
-                Swal.fire('Aún no', `Te faltan ${50 - puntosActuales} puntos. ¡Sigue disfrutando nuestra comida para acumular más!`, 'info');
-            }
-        };
-
-        window.cerrarSesion = () => {
-            Swal.fire({
-                title: '¿Cerrar Sesión?',
-                text: "Tendrás que volver a ingresar para hacer pedidos o usar puntos.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, salir'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    localStorage.removeItem("customerName");
-                    localStorage.removeItem("customerEmail");
-                    localStorage.removeItem("customerPhone");
-                    localStorage.removeItem("promoSubscribed");
-                    localStorage.removeItem("emailVerified");
-                    localStorage.removeItem("verifyCode");
-                    
-                    Swal.fire({
-                        toast: true,
-                        position: 'bottom-start',
-                        icon: 'success',
-                        title: 'Sesión cerrada',
-                        text: 'Vuelve pronto.',
-                        showConfirmButton: false,
-                        timer: 4000,
-                        timerProgressBar: true
-                    }).then(() => {
-                        window.location.href = "index.html";
+                    await setDoc(clienteRef, {
+                        nombre: nombre,
+                        email: email,
+                        telefono: phone,
+                        puntos: puntosGanados,
+                        suscrito_promos: localStorage.getItem("promoSubscribed") === "true",
+                        historial: [nuevoPedido]
                     });
                 }
-            });
+                
+                // Enviar Factura por EmailJS
+                const primerNombre = nombre.split(' ');
+                emailjs.send("service_taquizalarana", "template_s700zhs", {
+                    to_name: primerNombre,
+                    to_email: email,
+                    order_date: fechaActual,
+                    order_details: detallePedido,
+                    order_total: "$" + totalPagado + " MXN",
+                    points_earned: puntosGanados
+                }).then(function() {
+                    console.log('Factura enviada');
+                }, function(error) {
+                    console.error('Error enviando factura:', error);
+                });
+
+                Swal.fire({
+                    title: '¡Pago Exitoso!',
+                    text: `¡Gracias por tu compra! Has ganado ${puntosGanados} Taqui-Puntos. Te hemos enviado el recibo.`,
+                    icon: 'success',
+                    confirmButtonText: '¡Genial!',
+                    confirmButtonColor: '#267d46'
+                });
+                
+            } catch (error) {
+                console.error("Error al registrar en CRM:", error);
+                Swal.fire('Error', 'Hubo un error al procesar los datos en la nube.', 'error');
+            }
         };
     </script>
 </body>

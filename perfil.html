@@ -267,8 +267,8 @@
                 window.location.href = "index.html";
             });
         } else {
-            // Actualizamos la visualización del nombre
-            const primerNombre = customerName.trim().split(' '); // Solo el primer nombre
+            // CORRECCIÓN: Agregamos al final del split para tomar solo el primer nombre
+            const primerNombre = customerName.trim().split(' '); 
             document.getElementById("textNombre").innerText = "👤 " + primerNombre;
             document.getElementById("displayEmail").innerText = customerEmail;
             
@@ -351,6 +351,7 @@
                     await updateDoc(clienteRef, { nombre: newName });
                     
                     localStorage.setItem("customerName", newName);
+                    // CORRECCIÓN AQUÍ TAMBIÉN:
                     const primerNombre = newName.trim().split(' ');
                     document.getElementById("textNombre").innerText = "👤 " + primerNombre;
                     
@@ -433,6 +434,7 @@
                     // Actualizar el nombre local si es distinto al de la base de datos (por seguridad)
                     if(datos.nombre && datos.nombre !== customerName) {
                         localStorage.setItem("customerName", datos.nombre);
+                        // CORRECCIÓN AQUÍ TAMBIÉN:
                         document.getElementById("textNombre").innerText = "👤 " + datos.nombre.trim().split(' ');
                     }
 
