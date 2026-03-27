@@ -42,15 +42,23 @@ overflow:hidden;
 }
 
 /* =========================
-HEADER
+NUEVA ESTRUCTURA SUPERIOR (Grid)
 ========================= */
+.top-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    grid-template-areas:
+        "header horarios"
+        "search search";
+    padding: 20px 30px 0 30px;
+    gap: 20px;
+    align-items: center;
+}
 
-.header{
-background:white;
-padding:15px;
-text-align:center;
-color:black;
-position:relative;
+.header { 
+    grid-area: header; 
+    padding: 0; 
+    text-align: left; 
 }
 
 .header h1{
@@ -61,6 +69,55 @@ margin-bottom:10px;
 .header p{
 font-size:1.2em;
 opacity:0.9;
+}
+
+.search-container { 
+    grid-area: search; 
+    margin: 10px auto; 
+    width: 100%; 
+    text-align: center;
+}
+
+#searchInput{
+    width: 100%;
+    max-width: 600px; 
+    padding:12px;
+    border-radius:8px;
+    border:2px solid #267d46;
+    font-size:16px;
+}
+
+/* =========================
+TARJETA DE HORARIOS
+========================= */
+.horarios-card {
+    grid-area: horarios;
+    background: #fdfdfd;
+    border-left: 6px solid #267d46;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.horarios-card h3 {
+    color: #2c3e50;
+    font-size: 1.1em;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+    text-align: center;
+}
+
+.horarios-card ul { 
+    list-style: none; 
+}
+
+.horarios-card li {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    color: #555;
 }
 
 /* =========================
@@ -306,88 +363,14 @@ background:#128C7E;
 transform:scale(1.05);
 }
 
-/* =========================
-RESPONSIVE
-========================= */
-
-@media(max-width:768px){
-
-.header h1{
-font-size:1.8em;
-}
-
-.products{
-grid-template-columns:1fr;
-}
-
-.cart-float{
-bottom:10px;
-right:10px;
-padding:15px 20px;
-font-size:1em;
-}
-
-/* Ocultar el botón rojo de cerrar sesión en móviles */
-#userLogoutBtn {
-    display: none !important;
-}
-
-/* Ajustes para la barra de botones en móviles para que no se amontonen */
-.top-menu-bar {
-    top: 10px;
-    left: 10px;
-    right: 10px;
-}
-
-.menu-btn {
-    padding: 8px 12px;
-    font-size: 14px;
-}
-
-.user-section{
-position:static;
-margin-top:10px;
-}
-
-}
-
 .empty-cart{
 text-align:center;
 padding:40px;
 color:#999;
 }
 
-.search-container{
-margin:20px auto;
-text-align:center;
-}
-
-#searchInput{
-width:60%;
-padding:12px;
-border-radius:8px;
-border:2px solid #267d46;
-font-size:16px;
-}
-
-.user-section{
-position:absolute;
-top:20px;
-right:20px;
-background:white;
-padding:8px;
-border-radius:10px;
-box-shadow:0 3px 10px rgba(0,0,0,0.15);
-}
-
-.logo{
-max-width:450px;
-width:100%;
-height:auto;
-}
-
 /* =========================
-Menu
+Menu Desplegable
 ========================= */
 
 .menu-dropdown {
@@ -396,7 +379,7 @@ Menu
 }
 
 .menu-btn {
-    background: #f5576c; /* Naranja/rojizo para resaltar */
+    background: #f5576c; 
     color: white;
     border: none;
     padding: 12px 20px;
@@ -439,9 +422,8 @@ Menu
 
 .dropdown-content button:hover {
     background: #f0f0f0;
-    color: #267d46; /* Letra verde al pasar el mouse */
+    color: #267d46;
 }
-
 
 /* =======================================
    ESTILOS GENERALES Y FORMULARIOS (ADMIN)
@@ -668,16 +650,101 @@ details[open] .details-content {
     left: 20px;
     right: 20px;
     display: flex;
-    justify-content: space-between; /* Empuja un div a la izq y el otro a la der */
+    justify-content: space-between; 
     z-index: 3000;
-    pointer-events: none; /* Deja hacer click a través del div invisible */
+    pointer-events: none; 
 }
 
 .top-menu-bar > div {
-    pointer-events: auto; /* Reactiva el click en los botones reales */
+    pointer-events: auto; 
 }
 
 .user-dropdown {
     position: relative;
     display: flex;
+}
+
+.logo{
+    max-width:450px;
+    width:100%;
+    height:auto;
+}
+
+/* =========================
+   SECCIÓN DEL MAPA GPS
+========================= */
+.map-responsive {
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    border: 2px solid #e0e0e0;
+}
+
+/* =========================
+   RESPONSIVE UNIFICADO (ÚNICO BLOQUE AL FINAL)
+========================= */
+@media(max-width:768px){
+    /* Ajuste de la estructura superior en móvil */
+    .top-wrapper {
+        display: flex;
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .header { 
+        order: 1; 
+        text-align: center; 
+    }
+
+    .header h1{
+        font-size:1.8em;
+    }
+
+    .search-container { 
+        order: 2; 
+        width: 100%; 
+    }
+
+    #searchInput { 
+        width: 100%; 
+        max-width: none;
+    }
+
+    .horarios-card { 
+        order: 3; 
+        width: 100%; 
+        margin-top: 10px;
+    }
+
+    .products{
+        grid-template-columns:1fr;
+    }
+
+    .cart-float{
+        bottom:10px;
+        right:10px;
+        padding:15px 20px;
+        font-size:1em;
+    }
+
+    #userLogoutBtn {
+        display: none !important;
+    }
+
+    .top-menu-bar {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+    }
+
+    .menu-btn {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .user-section{
+        position:static;
+        margin-top:10px;
+    }
 }
