@@ -5,104 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Taquiza La Rana</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
-    <div class="menu-dropdown">
-        <button onclick="window.location.href='index.html'" class="menu-btn" style="background: #666;">
-            ⬅️ Volver al Menú
-        </button>
-    </div>
+    <div id="adminDashboard" style="display: none;">
+        <div class="menu-dropdown">
+            <button onclick="window.location.href='index.html'" class="menu-btn" style="background: #666;">
+                ⬅️ Volver al Menú
+            </button>
+        </div>
 
-    <div class="container" style="margin-top: 70px; padding-bottom: 50px;">
-        <div class="header">
-            <img src="src/images/LOGO.jpg" class="logo" style="max-width: 200px;">
+        <div class="container" style="margin-top: 70px; padding-bottom: 50px;">
+            <div class="header">
+                <img src="src/images/LOGO.jpg" class="logo" style="max-width: 200px;">
+            </div>
 
-        <div class="admin-form-container">
-
-            <details open> <summary>📋 Ver, Editar y Eliminar Platillos 🔽</summary>
-                <div class="details-content">
-                    <div class="inventory-list" id="inventoryList">
-                        <p>Cargando inventario...</p>
+            <div class="admin-form-container">
+                <details open> <summary>📋 Ver, Editar y Eliminar Platillos 🔽</summary>
+                    <div class="details-content">
+                        <div class="inventory-list" id="inventoryList">
+                            <p>Cargando inventario...</p>
+                        </div>
                     </div>
-                </div>
-            </details>
+                </details>
 
-            <details>
-                <summary>➕ Agregar Nuevo Platillo 🔽</summary>
-                <div class="details-content">
-                    <form id="addPlatilloForm">
-                        <div class="admin-form-group">
-                            <label for="nombrePlatillo">Nombre del Platillo</label>
-                            <input type="text" id="nombrePlatillo" placeholder="Ej: Tacos al Pastor" required>
-                        </div>
+                <details>
+                    <summary>➕ Agregar Nuevo Platillo 🔽</summary>
+                    <div class="details-content">
+                        <form id="addPlatilloForm">
+                            <div class="admin-form-group">
+                                <label for="nombrePlatillo">Nombre del Platillo</label>
+                                <input type="text" id="nombrePlatillo" placeholder="Ej: Tacos al Pastor" required>
+                            </div>
 
-                        <div class="admin-form-group">
-                            <label for="precioPlatillo">Precio ($)</label>
-                            <input type="number" id="precioPlatillo" placeholder="Ej: 80" required>
-                        </div>
+                            <div class="admin-form-group">
+                                <label for="precioPlatillo">Precio ($)</label>
+                                <input type="number" id="precioPlatillo" placeholder="Ej: 80" required>
+                            </div>
 
-                        <div class="admin-form-group">
-                            <label for="categoriaPlatillo">Categoría</label>
-                            <select id="categoriaPlatillo">
-                                <option value="PLATILLOS">Platillos</option>
-                                <option value="BEBIDAS">Bebidas</option>
-                            </select>
-                        </div>
+                            <div class="admin-form-group">
+                                <label for="categoriaPlatillo">Categoría</label>
+                                <select id="categoriaPlatillo">
+                                    <option value="PLATILLOS">Platillos</option>
+                                    <option value="BEBIDAS">Bebidas</option>
+                                </select>
+                            </div>
 
-                        <div class="admin-form-group">
-                            <label for="imagenPlatillo">Nombre de la Imagen (debe estar en src/images/)</label>
-                            <input type="text" id="imagenPlatillo" placeholder="Ej: tacos.jpg" required>
-                        </div>
+                            <div class="admin-form-group">
+                                <label for="imagenPlatillo">Nombre de la Imagen (debe estar en src/images/)</label>
+                                <input type="text" id="imagenPlatillo" placeholder="Ej: tacos.jpg" required>
+                            </div>
 
-                        <button type="submit" class="admin-submit-btn">Guardar Platillo</button>
-                    </form>
-                </div>
-            </details>
+                            <button type="submit" class="admin-submit-btn">Guardar Platillo</button>
+                        </form>
+                    </div>
+                </details>
+            </div>
         </div>
-    </div>
 
-    <div class="edit-modal" id="editModal">
-        <div class="edit-content">
-            <button class="close-edit-btn" onclick="cerrarModalEditar()">×</button>
-            <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #f0ad4e; padding-bottom: 10px;">
-                ✏️ Actualizar Platillo
-            </h2>
-            
-            <form id="editPlatilloForm">
-                <input type="hidden" id="editId">
+        <div class="edit-modal" id="editModal">
+            <div class="edit-content">
+                <button class="close-edit-btn" onclick="cerrarModalEditar()">×</button>
+                <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #f0ad4e; padding-bottom: 10px;">
+                    ✏️ Actualizar Platillo
+                </h2>
+                
+                <form id="editPlatilloForm">
+                    <input type="hidden" id="editId">
 
-                <div class="admin-form-group">
-                    <label>Nombre del Platillo</label>
-                    <input type="text" id="editNombre" required>
-                </div>
+                    <div class="admin-form-group">
+                        <label>Nombre del Platillo</label>
+                        <input type="text" id="editNombre" required>
+                    </div>
 
-                <div class="admin-form-group">
-                    <label>Precio ($)</label>
-                    <input type="number" id="editPrecio" required>
-                </div>
+                    <div class="admin-form-group">
+                        <label>Precio ($)</label>
+                        <input type="number" id="editPrecio" required>
+                    </div>
 
-                <div class="admin-form-group">
-                    <label>Categoría</label>
-                    <select id="editCategoria">
-                        <option value="PLATILLOS">Platillos</option>
-                        <option value="BEBIDAS">Bebidas</option>
-                    </select>
-                </div>
+                    <div class="admin-form-group">
+                        <label>Categoría</label>
+                        <select id="editCategoria">
+                            <option value="PLATILLOS">Platillos</option>
+                            <option value="BEBIDAS">Bebidas</option>
+                        </select>
+                    </div>
 
-                <div class="admin-form-group">
-                    <label>Nombre de la Imagen</label>
-                    <input type="text" id="editImagen" required>
-                </div>
+                    <div class="admin-form-group">
+                        <label>Nombre de la Imagen</label>
+                        <input type="text" id="editImagen" required>
+                    </div>
 
-                <button type="submit" class="admin-submit-btn btn-update">💾 Guardar Cambios</button>
-            </form>
+                    <button type="submit" class="admin-submit-btn btn-update">💾 Guardar Cambios</button>
+                </form>
+            </div>
         </div>
-    </div>
-
-    <script type="module">
+    </div> <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
@@ -115,6 +116,83 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // --- SISTEMA DE SEGURIDAD PARA ADMINS (CON CORREO) ---
+        async function verificarAccesoAdmin() {
+            if (sessionStorage.getItem("adminLogueado") === "true") {
+                document.getElementById("adminDashboard").style.display = "block";
+                cargarInventario();
+                return;
+            }
+
+            const { value: formValues } = await Swal.fire({
+                title: '🔒 Acceso Restringido',
+                html:
+                    '<input id="swal-email" type="email" class="swal2-input" placeholder="Correo Administrativo">' +
+                    '<input id="swal-pass" type="password" class="swal2-input" placeholder="Contraseña">',
+                focusConfirm: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showCancelButton: true,
+                cancelButtonText: 'Volver a la Tienda',
+                confirmButtonText: 'Entrar',
+                confirmButtonColor: '#267d46',
+                preConfirm: () => {
+                    const email = document.getElementById('swal-email').value;
+                    const pass = document.getElementById('swal-pass').value;
+                    
+                    if (!email || !pass) {
+                        Swal.showValidationMessage('Ingresa el correo y la contraseña');
+                        return false;
+                    }
+                    if (!/\S+@\S+\.\S+/.test(email)) {
+                        Swal.showValidationMessage('Ingresa un formato de correo válido');
+                        return false;
+                    }
+                    return { email, pass };
+                }
+            });
+
+            if (!formValues) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                // Buscamos el documento usando el correo electrónico
+                const adminRef = doc(db, "admins", formValues.email);
+                const adminSnap = await getDoc(adminRef);
+
+                if (adminSnap.exists() && adminSnap.data().password === formValues.pass) {
+                    sessionStorage.setItem("adminLogueado", "true");
+                    Swal.fire({
+                        toast: true, position: 'top-end', icon: 'success', 
+                        title: '¡Bienvenido Administrador!', showConfirmButton: false, timer: 2000
+                    });
+                    document.getElementById("adminDashboard").style.display = "block";
+                    cargarInventario(); 
+                } else {
+                    Swal.fire({
+                        title: 'Acceso Denegado',
+                        text: 'El correo o contraseña son incorrectos.',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    }).then(() => {
+                        window.location.href = 'index.html'; 
+                    });
+                }
+            } catch (error) {
+                console.error("Error al verificar admin:", error);
+                Swal.fire('Error de conexión', 'Inténtalo de nuevo más tarde.', 'error').then(() => window.location.href = 'index.html');
+            }
+        }
+
+        // Ejecutamos la seguridad apenas carga la página
+        verificarAccesoAdmin();
+
+
+        // --- LOGICA DEL INVENTARIO (INTACTA) ---
         async function cargarInventario() {
             const inventoryList = document.getElementById('inventoryList');
             inventoryList.innerHTML = '<p style="text-align:center;">Cargando inventario...</p>';
@@ -228,8 +306,6 @@
                 console.error("Error añadiendo: ", e);
             }
         });
-
-        cargarInventario();
     </script>
 </body>
 </html>
