@@ -159,11 +159,10 @@
             padding: 5px 10px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.5em; /* Ajustado para el título */
+            font-size: 0.5em; 
         }
         .edit-data-btn:hover { background: #0056b3; }
         
-        /* Botón de edición de teléfono (más grande que el del nombre) */
         .edit-phone-btn {
             background: #007bff;
             color: white;
@@ -244,7 +243,6 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        // Añadimos collection, query, where y getDocs para poder buscar el teléfono duplicado
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -267,7 +265,7 @@
                 window.location.href = "index.html";
             });
         } else {
-            // CORRECCIÓN: Agregamos al final del split para tomar solo el primer nombre
+            // CORRECCIÓN: Agregado para sacar solo el primer nombre
             const primerNombre = customerName.trim().split(' '); 
             document.getElementById("textNombre").innerText = "👤 " + primerNombre;
             document.getElementById("displayEmail").innerText = customerEmail;
@@ -327,7 +325,6 @@
             }
         };
 
-        // --- NUEVA FUNCIÓN PARA EDITAR NOMBRE ---
         window.editarNombre = async () => {
             const actual = localStorage.getItem("customerName") || "";
             const { value: newName } = await Swal.fire({
@@ -343,7 +340,6 @@
             });
 
             if (newName && newName !== actual) {
-                // Estado de carga
                 Swal.fire({ title: 'Actualizando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
                 
                 try {
@@ -351,7 +347,7 @@
                     await updateDoc(clienteRef, { nombre: newName });
                     
                     localStorage.setItem("customerName", newName);
-                    // CORRECCIÓN AQUÍ TAMBIÉN:
+                    // CORRECCIÓN: Agregado
                     const primerNombre = newName.trim().split(' ');
                     document.getElementById("textNombre").innerText = "👤 " + primerNombre;
                     
@@ -363,7 +359,6 @@
             }
         };
 
-        // --- FUNCIÓN DE TELÉFONO ACTUALIZADA CON VALIDACIÓN ---
         window.editarTelefono = async () => {
             const actual = localStorage.getItem("customerPhone") || "";
             const { value: phone } = await Swal.fire({
@@ -382,14 +377,12 @@
                 Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
                 
                 try {
-                    // Verificamos si alguien más ya tiene este número
                     const clientesRef = collection(db, "clientes");
                     const q = query(clientesRef, where("telefono", "==", phone));
                     const querySnapshot = await getDocs(q);
 
                     let duplicado = false;
                     querySnapshot.forEach((doc) => {
-                        // Si encontramos el teléfono, pero NO es el documento del usuario actual
                         if(doc.id !== customerEmail) {
                             duplicado = true;
                         }
@@ -397,10 +390,9 @@
 
                     if (duplicado) {
                         Swal.fire('Número en uso', 'Ese número de teléfono ya está registrado en otra cuenta.', 'warning');
-                        return; // Detenemos la actualización
+                        return; 
                     }
 
-                    // Si no está duplicado, actualizamos
                     const clienteRef = doc(db, "clientes", customerEmail);
                     await updateDoc(clienteRef, { telefono: phone });
                     
@@ -431,10 +423,9 @@
                         document.getElementById("displayPhone").innerHTML = `📱 ${datos.telefono} <button class="edit-phone-btn" onclick="editarTelefono()">Editar</button>`;
                     }
 
-                    // Actualizar el nombre local si es distinto al de la base de datos (por seguridad)
                     if(datos.nombre && datos.nombre !== customerName) {
                         localStorage.setItem("customerName", datos.nombre);
-                        // CORRECCIÓN AQUÍ TAMBIÉN:
+                        // CORRECCIÓN: Agregado
                         document.getElementById("textNombre").innerText = "👤 " + datos.nombre.trim().split(' ');
                     }
 
