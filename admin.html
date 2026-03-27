@@ -6,6 +6,36 @@
     <title>Panel de Administración - Taquiza La Rana</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Estilos Dashboard ERP / SCM */
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;
+        }
+        .kpi-card {
+            background: linear-gradient(135deg, #267d46 0%, #1a5730 100%); color: white;
+            padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .kpi-card h3 { margin: 0 0 10px 0; font-size: 1em; opacity: 0.9; }
+        .kpi-card p { margin: 0; font-size: 2em; font-weight: bold; }
+        .kpi-card.alert { background: linear-gradient(135deg, #f5576c 0%, #d62f2f 100%); }
+        .kpi-card.warning { background: linear-gradient(135deg, #f0ad4e 0%, #d3913a 100%); color: #333;}
+        
+        .chart-container {
+            background: white; padding: 20px; border-radius: 10px; border: 1px solid #eee;
+            margin-top: 20px; max-width: 400px; margin: 20px auto;
+        }
+        
+        .table-container { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f9f9f9; color: #333; }
+        tr:hover { background-color: #f1f1f1; }
+        .status-low { color: #d62f2f; font-weight: bold; }
+        .status-ok { color: #267d46; font-weight: bold; }
+    </style>
 </head>
 
 <body>
@@ -19,10 +49,93 @@
         <div class="container" style="margin-top: 70px; padding-bottom: 50px;">
             <div class="header">
                 <img src="src/images/LOGO.jpg" class="logo" style="max-width: 200px;">
+                <h2 style="color: #267d46; margin-top: 10px;">Centro de Control Empresarial</h2>
             </div>
 
-            <div class="admin-form-container">
-                <details open> <summary>📋 Ver, Editar y Eliminar Platillos 🔽</summary>
+            <div class="admin-form-container" style="max-width: 900px;">
+                
+                <details open> 
+                    <summary>📊 Módulo ERP: Dashboard de Ventas 🔽</summary>
+                    <div class="details-content">
+                        <div class="dashboard-grid">
+                            <div class="kpi-card">
+                                <h3>Ingresos del Día</h3>
+                                <p>$4,250 MXN</p>
+                            </div>
+                            <div class="kpi-card">
+                                <h3>Pedidos Atendidos</h3>
+                                <p>38</p>
+                            </div>
+                            <div class="kpi-card warning">
+                                <h3>Platillo Estrella</h3>
+                                <p style="font-size: 1.5em; line-height: 1.3;">Tacos al Pastor</p>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-grid">
+                            <div class="chart-container">
+                                <h3 style="text-align: center; color: #333; margin-bottom: 15px;">Ventas por Categoría</h3>
+                                <canvas id="ventasChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <details> 
+                    <summary>📦 Módulo SCM: Cadena de Suministro 🔽</summary>
+                    <div class="details-content">
+                        <h3 style="color: #333; border-bottom: 2px solid #267d46; padding-bottom: 5px; margin-bottom: 15px;">Alertas de Stock</h3>
+                        <div class="dashboard-grid">
+                            <div class="kpi-card alert">
+                                <h3>⚠️ Caguamas Restantes</h3>
+                                <p>4 uds</p>
+                                <small>Llamar a proveedor urgente</small>
+                            </div>
+                            <div class="kpi-card alert">
+                                <h3>⚠️ Kilos de Pastor</h3>
+                                <p>2.5 kg</p>
+                                <small>Suficiente para 2 horas</small>
+                            </div>
+                        </div>
+
+                        <h3 style="color: #333; border-bottom: 2px solid #f0ad4e; padding-bottom: 5px; margin-top: 30px; margin-bottom: 10px;">Directorio de Proveedores</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Proveedor</th>
+                                        <th>Suministra</th>
+                                        <th>Teléfono</th>
+                                        <th>Estado Stock</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Carnicería El Torito</td>
+                                        <td>Carne Pastor, Bistec</td>
+                                        <td>961 123 4567</td>
+                                        <td class="status-low">Reabastecer</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Depósito La Corona</td>
+                                        <td>Caguamas, Refrescos</td>
+                                        <td>961 987 6543</td>
+                                        <td class="status-low">Reabastecer</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Verdulería San Juan</td>
+                                        <td>Limones, Cebolla, Cilantro</td>
+                                        <td>961 555 1234</td>
+                                        <td class="status-ok">Óptimo</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </details>
+
+                <details> 
+                    <summary>📋 Ver, Editar y Eliminar Platillos 🔽</summary>
                     <div class="details-content">
                         <div class="inventory-list" id="inventoryList">
                             <p>Cargando inventario...</p>
@@ -38,12 +151,10 @@
                                 <label for="nombrePlatillo">Nombre del Platillo</label>
                                 <input type="text" id="nombrePlatillo" placeholder="Ej: Tacos al Pastor" required>
                             </div>
-
                             <div class="admin-form-group">
                                 <label for="precioPlatillo">Precio ($)</label>
                                 <input type="number" id="precioPlatillo" placeholder="Ej: 80" required>
                             </div>
-
                             <div class="admin-form-group">
                                 <label for="categoriaPlatillo">Categoría</label>
                                 <select id="categoriaPlatillo">
@@ -51,12 +162,10 @@
                                     <option value="BEBIDAS">Bebidas</option>
                                 </select>
                             </div>
-
                             <div class="admin-form-group">
                                 <label for="imagenPlatillo">Nombre de la Imagen (debe estar en src/images/)</label>
                                 <input type="text" id="imagenPlatillo" placeholder="Ej: tacos.jpg" required>
                             </div>
-
                             <button type="submit" class="admin-submit-btn">Guardar Platillo</button>
                         </form>
                     </div>
@@ -70,20 +179,16 @@
                 <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #f0ad4e; padding-bottom: 10px;">
                     ✏️ Actualizar Platillo
                 </h2>
-                
                 <form id="editPlatilloForm">
                     <input type="hidden" id="editId">
-
                     <div class="admin-form-group">
                         <label>Nombre del Platillo</label>
                         <input type="text" id="editNombre" required>
                     </div>
-
                     <div class="admin-form-group">
                         <label>Precio ($)</label>
                         <input type="number" id="editPrecio" required>
                     </div>
-
                     <div class="admin-form-group">
                         <label>Categoría</label>
                         <select id="editCategoria">
@@ -91,17 +196,17 @@
                             <option value="BEBIDAS">Bebidas</option>
                         </select>
                     </div>
-
                     <div class="admin-form-group">
                         <label>Nombre de la Imagen</label>
                         <input type="text" id="editImagen" required>
                     </div>
-
                     <button type="submit" class="admin-submit-btn btn-update">💾 Guardar Cambios</button>
                 </form>
             </div>
         </div>
-    </div> <script type="module">
+    </div> 
+
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -116,11 +221,34 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- SISTEMA DE SEGURIDAD PARA ADMINS (CON CORREO) ---
+        // --- INICIALIZAR GRÁFICO ERP ---
+        function initChart() {
+            const ctx = document.getElementById('ventasChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tacos', 'Tortas', 'Caguamas', 'Refrescos'],
+                    datasets: [{
+                        data:,
+                        backgroundColor: [
+                            '#267d46', // Verde Rana
+                            '#f0ad4e', // Amarillo/Naranja
+                            '#f5576c', // Rojo/Rosa
+                            '#34495e'  // Gris Oscuro
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // --- SISTEMA DE SEGURIDAD PARA ADMINS ---
         async function verificarAccesoAdmin() {
             if (sessionStorage.getItem("adminLogueado") === "true") {
                 document.getElementById("adminDashboard").style.display = "block";
                 cargarInventario();
+                initChart(); // Inicia el gráfico si ya está logueado
                 return;
             }
 
@@ -129,58 +257,34 @@
                 html:
                     '<input id="swal-email" type="email" class="swal2-input" placeholder="Correo Administrativo">' +
                     '<input id="swal-pass" type="password" class="swal2-input" placeholder="Contraseña">',
-                focusConfirm: false,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showCancelButton: true,
-                cancelButtonText: 'Volver a la Tienda',
-                confirmButtonText: 'Entrar',
-                confirmButtonColor: '#267d46',
+                focusConfirm: false, allowOutsideClick: false, allowEscapeKey: false, showCancelButton: true,
+                cancelButtonText: 'Volver a la Tienda', confirmButtonText: 'Entrar', confirmButtonColor: '#267d46',
                 preConfirm: () => {
                     const email = document.getElementById('swal-email').value;
                     const pass = document.getElementById('swal-pass').value;
-                    
-                    if (!email || !pass) {
-                        Swal.showValidationMessage('Ingresa el correo y la contraseña');
-                        return false;
-                    }
-                    if (!/\S+@\S+\.\S+/.test(email)) {
-                        Swal.showValidationMessage('Ingresa un formato de correo válido');
-                        return false;
-                    }
+                    if (!email || !pass) { Swal.showValidationMessage('Ingresa el correo y la contraseña'); return false; }
+                    if (!/\S+@\S+\.\S+/.test(email)) { Swal.showValidationMessage('Ingresa un formato de correo válido'); return false; }
                     return { email, pass };
                 }
             });
 
-            if (!formValues) {
-                window.location.href = 'index.html';
-                return;
-            }
+            if (!formValues) { window.location.href = 'index.html'; return; }
 
             Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             try {
-                // Buscamos el documento usando el correo electrónico
                 const adminRef = doc(db, "admins", formValues.email);
                 const adminSnap = await getDoc(adminRef);
 
                 if (adminSnap.exists() && adminSnap.data().password === formValues.pass) {
                     sessionStorage.setItem("adminLogueado", "true");
-                    Swal.fire({
-                        toast: true, position: 'top-end', icon: 'success', 
-                        title: '¡Bienvenido Administrador!', showConfirmButton: false, timer: 2000
-                    });
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '¡Bienvenido Administrador!', showConfirmButton: false, timer: 2000 });
                     document.getElementById("adminDashboard").style.display = "block";
                     cargarInventario(); 
+                    initChart(); // Inicia el gráfico al loguearse con éxito
                 } else {
-                    Swal.fire({
-                        title: 'Acceso Denegado',
-                        text: 'El correo o contraseña son incorrectos.',
-                        icon: 'error',
-                        confirmButtonColor: '#d33'
-                    }).then(() => {
-                        window.location.href = 'index.html'; 
-                    });
+                    Swal.fire({ title: 'Acceso Denegado', text: 'El correo o contraseña son incorrectos.', icon: 'error', confirmButtonColor: '#d33' })
+                        .then(() => { window.location.href = 'index.html'; });
                 }
             } catch (error) {
                 console.error("Error al verificar admin:", error);
@@ -188,11 +292,9 @@
             }
         }
 
-        // Ejecutamos la seguridad apenas carga la página
         verificarAccesoAdmin();
 
-
-        // --- LOGICA DEL INVENTARIO (INTACTA) ---
+        // --- LOGICA DEL INVENTARIO (REAL) ---
         async function cargarInventario() {
             const inventoryList = document.getElementById('inventoryList');
             inventoryList.innerHTML = '<p style="text-align:center;">Cargando inventario...</p>';
@@ -204,9 +306,8 @@
                 }
                 let html = '';
                 querySnapshot.forEach((documento) => {
-                    const data = documento.data();
-                    const id = documento.id;
-                    const nombreArchivoImg = data.imagen_url.replace("src/images/", "");
+                    const data = documento.data(); const id = documento.id;
+                    const nombreArchivoImg = data.imagen_url ? data.imagen_url.replace("src/images/", "") : "";
                     html += `
                         <div class="inventory-item">
                             <img src="${data.imagen_url}" class="inventory-img" alt="${data.nombre}">
@@ -216,60 +317,33 @@
                                 <p style="font-size: 0.8em; font-weight: normal;">${data.categoria}</p>
                             </div>
                             <div class="action-buttons">
-                                <button class="btn-action btn-edit" 
-                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${nombreArchivoImg}')">
-                                    ✏️ Editar
-                                </button>
-                                <button class="btn-action btn-delete" 
-                                    onclick="borrarPlatillo('${id}', '${data.nombre}')">
-                                    🗑️ Eliminar
-                                </button>
+                                <button class="btn-action btn-edit" onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${nombreArchivoImg}')">✏️ Editar</button>
+                                <button class="btn-action btn-delete" onclick="borrarPlatillo('${id}', '${data.nombre}')">🗑️ Eliminar</button>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
                 inventoryList.innerHTML = html;
-            } catch (error) {
-                console.error("Error:", error);
-                inventoryList.innerHTML = '<p>Error al cargar los platillos.</p>';
-            }
+            } catch (error) { console.error("Error:", error); inventoryList.innerHTML = '<p>Error al cargar los platillos.</p>'; }
         }
 
         window.abrirModalEditar = (id, nombre, precio, categoria, imagen) => {
-            document.getElementById('editId').value = id;
-            document.getElementById('editNombre').value = nombre;
-            document.getElementById('editPrecio').value = precio;
-            document.getElementById('editCategoria').value = categoria;
-            document.getElementById('editImagen').value = imagen;
-            document.getElementById('editModal').classList.add('active');
+            document.getElementById('editId').value = id; document.getElementById('editNombre').value = nombre;
+            document.getElementById('editPrecio').value = precio; document.getElementById('editCategoria').value = categoria;
+            document.getElementById('editImagen').value = imagen; document.getElementById('editModal').classList.add('active');
         };
 
-        window.cerrarModalEditar = () => {
-            document.getElementById('editModal').classList.remove('active');
-        };
+        window.cerrarModalEditar = () => { document.getElementById('editModal').classList.remove('active'); };
 
         document.getElementById('editPlatilloForm').addEventListener('submit', async (e) => {
             e.preventDefault(); 
-            const id = document.getElementById('editId').value;
-            const nombreNuevo = document.getElementById('editNombre').value;
-            const precioNuevo = Number(document.getElementById('editPrecio').value);
-            const categoriaNueva = document.getElementById('editCategoria').value;
+            const id = document.getElementById('editId').value; const nombreNuevo = document.getElementById('editNombre').value;
+            const precioNuevo = Number(document.getElementById('editPrecio').value); const categoriaNueva = document.getElementById('editCategoria').value;
             const imagenNueva = document.getElementById('editImagen').value;
             try {
                 const platilloRef = doc(db, "menu_items", id);
-                await updateDoc(platilloRef, {
-                    nombre: nombreNuevo,
-                    precio: precioNuevo,
-                    categoria: categoriaNueva,
-                    imagen_url: "src/images/" + imagenNueva
-                });
-                alert("¡Platillo actualizado correctamente!");
-                cerrarModalEditar();
-                cargarInventario(); 
-            } catch (error) {
-                console.error("Error actualizando: ", error);
-                alert("Hubo un error al actualizar el platillo.");
-            }
+                await updateDoc(platilloRef, { nombre: nombreNuevo, precio: precioNuevo, categoria: categoriaNueva, imagen_url: "src/images/" + imagenNueva });
+                Swal.fire('¡Actualizado!', 'Platillo actualizado correctamente.', 'success'); cerrarModalEditar(); cargarInventario(); 
+            } catch (error) { console.error("Error actualizando: ", error); Swal.fire('Error', 'Hubo un error al actualizar el platillo.', 'error'); }
         });
 
         window.borrarPlatillo = async (id, nombre) => {
@@ -277,34 +351,19 @@
             if (confirmacion) {
                 try {
                     await deleteDoc(doc(db, "menu_items", id));
-                    alert(`¡Platillo "${nombre}" eliminado correctamente!`);
-                    cargarInventario();
-                } catch (error) {
-                    console.error("Error al eliminar: ", error);
-                }
+                    Swal.fire('¡Eliminado!', `Platillo "${nombre}" eliminado correctamente.`, 'success'); cargarInventario();
+                } catch (error) { console.error("Error al eliminar: ", error); }
             }
         };
 
         document.getElementById('addPlatilloForm').addEventListener('submit', async (e) => {
             e.preventDefault(); 
-            const nombre = document.getElementById('nombrePlatillo').value;
-            const precio = Number(document.getElementById('precioPlatillo').value);
-            const categoria = document.getElementById('categoriaPlatillo').value;
-            const imagen = document.getElementById('imagenPlatillo').value;
+            const nombre = document.getElementById('nombrePlatillo').value; const precio = Number(document.getElementById('precioPlatillo').value);
+            const categoria = document.getElementById('categoriaPlatillo').value; const imagen = document.getElementById('imagenPlatillo').value;
             try {
-                await addDoc(collection(db, "menu_items"), {
-                    nombre: nombre,
-                    precio: precio,
-                    categoria: categoria,
-                    imagen_url: "src/images/" + imagen,
-                    fecha_creacion: new Date()
-                });
-                alert("Éxito!: Platillo agregado correctamente.");
-                document.getElementById('addPlatilloForm').reset(); 
-                cargarInventario();
-            } catch (e) {
-                console.error("Error añadiendo: ", e);
-            }
+                await addDoc(collection(db, "menu_items"), { nombre: nombre, precio: precio, categoria: categoria, imagen_url: "src/images/" + imagen, fecha_creacion: new Date() });
+                Swal.fire('¡Éxito!', 'Platillo agregado correctamente.', 'success'); document.getElementById('addPlatilloForm').reset(); cargarInventario();
+            } catch (e) { console.error("Error añadiendo: ", e); }
         });
     </script>
 </body>
