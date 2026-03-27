@@ -2,10 +2,8 @@
 // MÓDULO CRM - SISTEMA DE LOGIN MANUAL AVANZADO
 // ==========================================
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-// 1. Agregamos setDoc y updateDoc a los imports de Firestore
 import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// Agregamos las credenciales de tu proyecto Taquiza
 const firebaseConfig = {
     apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
     authDomain: "taquiza-web.firebaseapp.com",
@@ -15,7 +13,6 @@ const firebaseConfig = {
     appId: "1:475601236604:web:775b368768e9822789cff9"
 };
 
-// Inicializamos la app SOLO si no existe ya una activa
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
@@ -32,6 +29,7 @@ function verificarSesionActiva() {
     const btnLogout = document.getElementById('userLogoutBtn');
 
     if (currentName && isVerified) {
+        // CORRECCIÓN: Agregamos para evitar el error de las comas en el menú superior
         const primerNombre = currentName.trim().split(' ');
         
         if (btnLogin) {
@@ -184,7 +182,7 @@ async function procesarRegistro(data, codigo) {
 
         Swal.close(); 
 
-        const primerNombre = data.name.trim().split(' ');
+        const primerNombre = data.name.trim().split(' '); // CORRECCIÓN AQUÍ TAMBIÉN
         
         localStorage.setItem("customerName", data.name);
         localStorage.setItem("customerEmail", email);
@@ -207,12 +205,10 @@ async function procesarRegistro(data, codigo) {
             inputValidator: (value) => {
                 if (!value) return 'Necesitas ingresar el código';
             }
-        // 2. HACEMOS LA PROMESA ASÍNCRONA PARA PODER USAR AWAIT
         }).then(async (result) => {
             if (result.isConfirmed && result.value === codigo) {
                 localStorage.setItem("emailVerified", "true");
                 
-                // 3. ¡AQUÍ ESTÁ LA MAGIA! CREAMOS EL USUARIO EN FIREBASE INMEDIATAMENTE
                 try {
                     await setDoc(clienteRef, {
                         nombre: data.name,
@@ -221,14 +217,12 @@ async function procesarRegistro(data, codigo) {
                         suscrito_promos: data.promo ? true : false,
                         puntos: 0,
                         historial: []
-                        // No guardamos el teléfono aún, por si lo omiten
                     });
                 } catch (e) {
                     console.error("Error al registrar en Firebase:", e);
                 }
 
                 verificarSesionActiva();
-                // 4. Pasamos el email como parámetro a la función del teléfono
                 pedirTelefonoObligatorio(primerNombre, email); 
             } else {
                 Swal.fire('Error', 'Código incorrecto. Intenta registrarte nuevamente.', 'error');
@@ -259,7 +253,7 @@ async function procesarLogin(data, codigoTemporal) {
         if (clienteSnap.exists()) {
             const dbData = clienteSnap.data();
             savedName = dbData.nombre; 
-            primerNombre = savedName.trim().split(' ');
+            primerNombre = savedName.trim().split(' '); // CORRECCIÓN AQUÍ TAMBIÉN
             
             localStorage.setItem("customerName", savedName);
             localStorage.setItem("customerEmail", email);
@@ -309,7 +303,6 @@ async function procesarLogin(data, codigoTemporal) {
     }
 }
 
-// 5. RECIBIMOS EL EMAIL EN LA FUNCIÓN PARA PODER GUARDAR EL TELÉFONO EN FIREBASE
 function pedirTelefonoObligatorio(primerNombre, email) {
     Swal.fire({
         title: `¡Felicidades, ${primerNombre}! 🎉`,
@@ -332,12 +325,10 @@ function pedirTelefonoObligatorio(primerNombre, email) {
                 }
             });
         }
-    // 6. HACEMOS LA PROMESA ASÍNCRONA PARA ACTUALIZAR LA BD
     }).then(async (phoneResult) => {
         if (phoneResult.isConfirmed && phoneResult.value) {
             localStorage.setItem("customerPhone", phoneResult.value);
             
-            // 7. GUARDAMOS EL TELÉFONO EN FIREBASE
             try {
                 const clienteRef = doc(db, "clientes", email);
                 await updateDoc(clienteRef, { telefono: phoneResult.value });
@@ -362,6 +353,7 @@ function enviarCodigoPorCorreo(nombre, correo, codigo) {
     }
 }
 
+// ESTA FUNCIÓN SE QUEDA AQUÍ POR SI AÚN HAY ALGÚN BOTÓN QUE LA LLAME (COMO EL DE ADMIN)
 window.cerrarSesion = function() {
     Swal.fire({
         title: '¿Cerrar Sesión?',
@@ -382,11 +374,22 @@ window.cerrarSesion = function() {
             localStorage.removeItem("customerPass");
             
             verificarSesionActiva(); 
-            mostrarToastExito('Sesión cerrada', 'Vuelve pronto.');
             
-            if(window.location.pathname.includes("perfil.html")) {
-                window.location.href = "index.html";
-            }
+            // USAMOS EL TOAST ESTILO INDEX AQUÍ TAMBIÉN
+            Swal.fire({
+                toast: true,
+                position: 'bottom-start',
+                icon: 'success',
+                title: 'Sesión cerrada',
+                text: 'Vuelve pronto.',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true
+            }).then(() => {
+                if(window.location.pathname.includes("perfil.html") || window.location.pathname.includes("admin.html")) {
+                    window.location.href = "index.html";
+                }
+            });
         }
     });
 };
