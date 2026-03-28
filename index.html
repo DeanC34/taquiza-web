@@ -333,7 +333,7 @@
             }
         };
 
-        // --- NUEVO: PUENTE SCM PARA DESCONTAR INVENTARIO ---
+        // --- NUEVO: PUENTE SCM Y ERP PARA INVENTARIO Y VENTAS ---
         window.descontarInventario = async (carrito) => {
             for (const item of carrito) {
                 try {
@@ -343,17 +343,26 @@
                     
                     querySnapshot.forEach(async (documento) => {
                         const docRef = doc(db, "menu_items", documento.id);
-                        const stockActual = documento.data().stock || 0;
                         
-                        // 2. Resta la cantidad comprada
+                        // Extraemos datos actuales
+                        const stockActual = documento.data().stock || 0;
+                        const ventasActuales = documento.data().ventas || 0;
+                        
+                        // 2. Resta la cantidad al stock
                         let nuevoStock = stockActual - item.quantity;
                         if (nuevoStock < 0) nuevoStock = 0; 
+                        
+                        // 3. Suma la cantidad vendida al ERP
+                        let nuevasVentas = ventasActuales + item.quantity;
 
-                        // 3. Actualiza Firebase
-                        await updateDoc(docRef, { stock: nuevoStock });
+                        // 4. Actualiza Firebase con el nuevo Stock y las nuevas Ventas
+                        await updateDoc(docRef, { 
+                            stock: nuevoStock,
+                            ventas: nuevasVentas
+                        });
                     });
                 } catch (error) {
-                    console.error("Error descontando stock de", item.name, error);
+                    console.error("Error actualizando SCM/ERP de", item.name, error);
                 }
             }
         };

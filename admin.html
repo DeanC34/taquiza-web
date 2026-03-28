@@ -83,18 +83,18 @@
                                 <p id="totalPlatillosKpi">0</p>
                             </div>
                             <div class="kpi-card">
-                                <h3>Pedidos Atendidos</h3>
-                                <p>38</p> 
+                                <h3>Total Artículos Vendidos</h3>
+                                <p id="pedidosAtendidosKpi">0</p> 
                             </div>
                             <div class="kpi-card warning">
                                 <h3>Platillo Estrella</h3>
-                                <p style="font-size: 1.5em; line-height: 1.3;">Tacos al Pastor</p> 
+                                <p id="platilloEstrellaKpi" style="font-size: 1.5em; line-height: 1.3;">Tacos de Cochito</p> 
                             </div>
                         </div>
 
                         <div class="dashboard-grid">
                             <div class="chart-container">
-                                <h3 style="text-align: center; color: #333; margin-bottom: 15px;">Tipos de Platillos</h3>
+                                <h3 style="text-align: center; color: #333; margin-bottom: 15px;">Tipos de Platillos Registrados</h3>
                                 <div class="chart-wrapper">
                                     <canvas id="ventasChart"></canvas>
                                 </div>
@@ -252,20 +252,37 @@
 
         let myChart = null; 
 
-        // --- INICIALIZAR GRÁFICO ERP DINÁMICO ---
+        // --- INICIALIZAR GRÁFICO ERP DINÁMICO Y KPI ESTRELLA ---
         async function initChart() {
             try {
                 const querySnapshot = await getDocs(collection(db, "menu_items"));
                 let countPlatillos = 0;
                 let countBebidas = 0;
+                
+                // Variables para el ERP de ventas
+                let maxVentas = 0;
+                let platilloEstrella = "Tacos de Cochito"; // Valor por defecto
+                let totalVentasGlobales = 0;
 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     if (data.categoria === "PLATILLOS") countPlatillos++;
                     if (data.categoria === "BEBIDAS") countBebidas++;
+                    
+                    // Lógica para encontrar el Platillo Estrella
+                    const ventas = data.ventas || 0;
+                    totalVentasGlobales += ventas;
+                    
+                    if (ventas > maxVentas && ventas > 0) {
+                        maxVentas = ventas;
+                        platilloEstrella = data.nombre;
+                    }
                 });
 
+                // Actualizar la interfaz con los datos reales
                 document.getElementById('totalPlatillosKpi').innerText = countPlatillos + countBebidas;
+                document.getElementById('platilloEstrellaKpi').innerText = platilloEstrella;
+                document.getElementById('pedidosAtendidosKpi').innerText = totalVentasGlobales;
 
                 if (myChart) myChart.destroy();
 
@@ -306,7 +323,7 @@
 
                     if (stock <= 10) {
                         productosBajos++;
-                        const isCritico = stock <= 3; // Crítico (Rojo)
+                        const isCritico = stock <= 3; 
                         
                         htmlAlertas += `
                             <div class="kpi-card ${isCritico ? 'alert' : 'warning'}">
@@ -415,13 +432,14 @@
                     const id = documento.id;
                     const nombreArchivoImg = data.imagen_url ? data.imagen_url.replace("src/images/", "") : "";
                     const stock = data.stock !== undefined ? data.stock : 0;
+                    const ventas = data.ventas !== undefined ? data.ventas : 0; // Mostrar ventas en inventario
 
                     html += `
                         <div class="inventory-item">
                             <img src="${data.imagen_url}" class="inventory-img" alt="${data.nombre}">
                             <div class="inventory-details">
                                 <h4>${data.nombre}</h4>
-                                <p style="color: #267d46;">$${data.precio} | <b>Stock: ${stock}</b></p>
+                                <p style="color: #267d46;">$${data.precio} | <b>Stock: ${stock}</b> | <small style="color:#666;">Ventas: ${ventas}</small></p>
                                 <p style="font-size: 0.8em; font-weight: normal;">${data.categoria}</p>
                             </div>
                             <div class="action-buttons">
@@ -447,7 +465,6 @@
             }
         }
 
-        // --- NUEVO: FUNCIÓN RÁPIDA PARA REABASTECER ---
         window.reabastecerStock = async (id, nombre, stockActual) => {
             const { value: cantidad } = await Swal.fire({
                 title: `Reabastecer: ${nombre}`,
@@ -472,17 +489,11 @@
                     
                     await updateDoc(platilloRef, { stock: nuevoStock });
                     
-                    Swal.fire(
-                        '¡Inventario Actualizado!',
-                        `Se sumaron ${cantidad} unidades. El nuevo stock de ${nombre} es de ${nuevoStock} uds.`,
-                        'success'
-                    );
+                    Swal.fire('¡Inventario Actualizado!', `Se sumaron ${cantidad} unidades. El nuevo stock es ${nuevoStock}.`, 'success');
                     
-                    // Recargamos las vistas para que se quiten las alertas si ya superó el mínimo
                     cargarInventario();
                     cargarAlertasSCM();
                 } catch (error) {
-                    console.error("Error al reabastecer:", error);
                     Swal.fire('Error', 'Hubo un problema al conectar con la base de datos.', 'error');
                 }
             }
@@ -536,9 +547,7 @@
                     cargarInventario();
                     initChart();
                     cargarAlertasSCM();
-                } catch (error) {
-                    console.error("Error al eliminar: ", error);
-                }
+                } catch (error) {}
             }
         };
 
@@ -554,6 +563,7 @@
                     nombre: nombre,
                     precio: precio,
                     stock: stock,
+                    ventas: 0, // Inicia con 0 ventas
                     categoria: categoria,
                     imagen_url: "src/images/" + imagen,
                     fecha_creacion: new Date()
@@ -563,9 +573,7 @@
                 cargarInventario();
                 initChart(); 
                 cargarAlertasSCM();
-            } catch (e) {
-                console.error("Error añadiendo: ", e);
-            }
+            } catch (e) {}
         });
     </script>
 </body>
