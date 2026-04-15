@@ -46,8 +46,7 @@ CONTENEDOR (GLASSMORPHISM)
     max-width:1200px;
     margin:0 auto;
     
-    /* Efecto Glassmorphism principal */
-    background: rgba(255, 255, 255, 0.7); /* Blanco semitransparente para legibilidad */
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.5);
@@ -263,8 +262,7 @@ TOOLBAR FLOTANTE SUPERIOR (NUEVO)
     padding: 15px 30px;
     z-index: 3000;
     
-    /* Toolbar Glassmorphism - AHORA MÁS VERDE OSCURO */
-    background: rgba(22, 69, 38, 0.85); /* Verde oscuro semitransparente */
+    background: rgba(22, 69, 38, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
@@ -430,7 +428,6 @@ Menu Desplegable
     display: flex;
 }
 
-/* Botones genéricos de la toolbar con Glassmorphism */
 .menu-btn {
     background: rgba(245, 87, 108, 0.75); 
     backdrop-filter: blur(5px);
@@ -482,13 +479,13 @@ Menu Desplegable
     color: #267d46;
 }
 
-/* AQUÍ SE REDONDEAN LAS ESQUINAS DEL LOGO */
+/* SE REDONDEAN LAS ESQUINAS DEL LOGO */
 .logo{
     max-width:450px;
     width:100%;
     height:auto;
-    border-radius: 35px; /* <--- Este valor redondea las esquinas */
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1); /* Le da un ligero toque de profundidad */
+    border-radius: 35px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
 }
 
 /* =======================================
@@ -733,10 +730,9 @@ RESPONSIVE UNIFICADO
 .side-panel {
     display: none; /* Ocultos por defecto en móviles/tablets */
     position: fixed;
-    top: 120px; /* Altura bajo el toolbar */
+    top: 120px; 
     width: 260px;
     
-    /* Efecto Glassmorphism verde oscuro */
     background: rgba(22, 69, 38, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);

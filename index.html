@@ -197,10 +197,8 @@
     </div>
 
     <script type="module">
-        // 1. Agregamos getApps y getApp en la importación
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         
-        // ¡IMPORTANTE! Aquí agregamos 'query' y 'where' a la importación
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -212,7 +210,6 @@
             appId: "1:475601236604:web:775b368768e9822789cff9"
         };
 
-        // 2. Protegemos la inicialización
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const db = getFirestore(app);
 
@@ -256,20 +253,17 @@
 
         cargarMenu();
 
-        // PUENTE CRM Y VALIDACIÓN DE PAGO
         window.guardarPedidoEnCRM = async (carritoTerminado, totalPagado) => {
             const email = localStorage.getItem("customerEmail");
             const nombre = localStorage.getItem("customerName");
             const phone = localStorage.getItem("customerPhone");
             const isVerified = localStorage.getItem("emailVerified") === "true";
             
-            // 1. Validar que tenga sesión
             if (!email || !nombre) {
                 Swal.fire('Error', 'Debes iniciar sesión para pagar en línea.', 'error');
                 return;
             }
 
-            // 2. Validar que tenga teléfono
             if (!phone) {
                 Swal.fire({
                     title: 'Falta tu teléfono',
@@ -283,7 +277,6 @@
                 return;
             }
 
-            // 3. Validar que el correo esté verificado para dar puntos
             if (!isVerified) {
                 Swal.fire({
                     title: '¡Casi listo!',
@@ -296,16 +289,14 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = 'perfil.html';
-                        return; // Detiene el pago y lo manda al perfil
+                        return; 
                     } else {
-                        // Si elige pagar sin puntos, solo lanzamos alerta de éxito y no guardamos en Firebase
                         Swal.fire('¡Pago Exitoso!', 'Tu pedido está en cocina. No se acumularon puntos.', 'success');
                     }
                 });
-                return; // Importante: Salir si no está verificado
+                return; 
             }
-
-            // Si pasa todo, procede a Firebase y envia correo
+            // Envia firebase
             const clienteRef = doc(db, "clientes", email);
             try {
                 const clienteSnap = await getDoc(clienteRef);
@@ -370,29 +361,24 @@
             }
         };
 
-        // --- NUEVO: PUENTE SCM Y ERP PARA INVENTARIO Y VENTAS ---
+        // --- PUENTE SCM Y ERP PARA INVENTARIO Y VENTAS ---
         window.descontarInventario = async (carrito) => {
             for (const item of carrito) {
                 try {
-                    // 1. Busca el platillo por su nombre exacto
                     const q = query(collection(db, "menu_items"), where("nombre", "==", item.name));
                     const querySnapshot = await getDocs(q);
                     
                     querySnapshot.forEach(async (documento) => {
                         const docRef = doc(db, "menu_items", documento.id);
                         
-                        // Extraemos datos actuales
                         const stockActual = documento.data().stock || 0;
                         const ventasActuales = documento.data().ventas || 0;
                         
-                        // 2. Resta la cantidad al stock
                         let nuevoStock = stockActual - item.quantity;
                         if (nuevoStock < 0) nuevoStock = 0; 
                         
-                        // 3. Suma la cantidad vendida al ERP
                         let nuevasVentas = ventasActuales + item.quantity;
 
-                        // 4. Actualiza Firebase con el nuevo Stock y las nuevas Ventas
                         await updateDoc(docRef, { 
                             stock: nuevoStock,
                             ventas: nuevasVentas

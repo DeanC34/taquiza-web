@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* Estilos Dashboard ERP / SCM */
+        /* Dashboard ERP / SCM */
         .dashboard-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;
         }
@@ -252,16 +252,15 @@
 
         let myChart = null; 
 
-        // --- INICIALIZAR GRÁFICO ERP DINÁMICO Y KPI ESTRELLA ---
+        // GRÁFICO ERP DINÁMICO Y KPI ESTRELLA 
         async function initChart() {
             try {
                 const querySnapshot = await getDocs(collection(db, "menu_items"));
                 let countPlatillos = 0;
                 let countBebidas = 0;
                 
-                // Variables para el ERP de ventas
                 let maxVentas = 0;
-                let platilloEstrella = "Tacos de Cochito"; // Valor por defecto
+                let platilloEstrella = "Tacos de Cochito"; 
                 let totalVentasGlobales = 0;
 
                 querySnapshot.forEach((doc) => {
@@ -269,7 +268,6 @@
                     if (data.categoria === "PLATILLOS") countPlatillos++;
                     if (data.categoria === "BEBIDAS") countBebidas++;
                     
-                    // Lógica para encontrar el Platillo Estrella
                     const ventas = data.ventas || 0;
                     totalVentasGlobales += ventas;
                     
@@ -279,7 +277,6 @@
                     }
                 });
 
-                // Actualizar la interfaz con los datos reales
                 document.getElementById('totalPlatillosKpi').innerText = countPlatillos + countBebidas;
                 document.getElementById('platilloEstrellaKpi').innerText = platilloEstrella;
                 document.getElementById('pedidosAtendidosKpi').innerText = totalVentasGlobales;
@@ -308,7 +305,7 @@
             }
         }
 
-        // --- INICIALIZAR ALERTAS SCM (TIEMPO REAL) ---
+        // ALERTAS SCM 
         async function cargarAlertasSCM() {
             const scmContainer = document.getElementById('scmAlertsContainer');
             try {
@@ -350,7 +347,6 @@
             }
         }
 
-        // --- SISTEMA DE SEGURIDAD PARA ADMINS ---
         async function verificarAccesoAdmin() {
             if (sessionStorage.getItem("adminLogueado") === "true") {
                 document.getElementById("adminDashboard").style.display = "block";
@@ -416,7 +412,6 @@
 
         verificarAccesoAdmin();
 
-        // --- LOGICA DEL INVENTARIO ---
         async function cargarInventario() {
             const inventoryList = document.getElementById('inventoryList');
             inventoryList.innerHTML = '<p style="text-align:center;">Cargando inventario...</p>';

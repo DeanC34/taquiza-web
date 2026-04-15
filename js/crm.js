@@ -28,7 +28,6 @@ function verificarSesionActiva() {
     const btnLogout = document.getElementById('userLogoutBtn');
 
     if (currentName && isVerified) {
-        // CORRECCIÓN APLICADA AQUÍ
         const primerNombre = currentName.trim().split(' ');
         
         if (btnLogin) {
@@ -178,7 +177,6 @@ async function procesarRegistro(data, codigo) {
 
         Swal.close(); 
 
-        // CORRECCIÓN APLICADA AQUÍ
         const primerNombre = data.name.trim().split(' '); 
         
         localStorage.setItem("customerName", data.name);

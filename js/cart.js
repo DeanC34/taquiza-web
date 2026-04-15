@@ -4,8 +4,6 @@
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-// 1. GESTIÓN DEL CARRITO
-
 function addToCart(name, price, stockActual) {
     // Si por alguna razón no llega el stock, asumimos que es 0
     const stock = stockActual !== undefined ? stockActual : 0;
@@ -29,7 +27,6 @@ function addToCart(name, price, stockActual) {
         }
         return; // Detenemos la función aquí, no se agrega al carrito
     }
-    // ----------------------------------
 
     if (existingItem) {
         existingItem.quantity++;
@@ -43,7 +40,7 @@ function addToCart(name, price, stockActual) {
 
     updateCart();
     
-    // Llamamos a la función del crm.js para guardar el historial
+    // función del crm.js para guardar el historial
     if (typeof saveCustomerData === "function") {
         saveCustomerData(name);
     }
