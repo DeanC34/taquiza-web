@@ -12,7 +12,6 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script type="text/javascript">
         (function() {
-            //Public Key de EmailJS
             emailjs.init({
               publicKey: "VEBTN4e8bCw4QSzDx",
             });
@@ -23,9 +22,36 @@
 </head>
 
 <body>
+    <div class="side-deco deco-left">🐸</div>
+    <div class="side-deco deco-right">🐸</div>
+
+    <div class="side-panel panel-left">
+        <h3>🐸 Info de la Taquería</h3>
+        <p><strong>Ubicación:</strong> Tuxtla Gtz.</p>
+        <p><strong>Última act:</strong> Hace 5 min</p>
+        <p><strong>Servicio:</strong> <span style="color: #66eab7;">Activo</span></p>
+    </div>
+
+    <div class="side-panel panel-right">
+        <h3>📌 Proyecto</h3>
+        <span class="badge">E-Business</span>
+        <span class="badge">7mo Semestre</span>
+        <span class="badge">TECNM</span>
+        <hr>
+        <h3>📜 Histórico de Pedidos</h3>
+        <p style="font-size: 0.8em;">
+            <strong>Orden:</strong> 5 Tacos de cochito<br>
+            Hora: 08:15 PM
+        </p>
+        <p style="font-size: 0.8em;">
+            <strong>Orden:</strong> 2 Caguamas<br>
+            Hora: 07:42 PM
+        </p>
+    </div>
+
     <div class="top-menu-bar">
         <div class="menu-dropdown">
-            <button onclick="toggleMenu()" class="menu-btn">☰</button>
+            <button onclick="toggleMenu()" class="menu-btn">☰ Menú</button>
             <div id="dropdownMenu" class="dropdown-content">
                 <button onclick="goToProfile()">👤 Perfil</button>
                 <button onclick="goToSettings()">⚙️ Ajustes</button>
@@ -34,21 +60,21 @@
         </div>
 
         <div class="user-dropdown">
-            <button onclick="openLoginModal()" class="menu-btn" id="userLoginBtn" style="background: #267d46;">
+            <button onclick="openLoginModal()" class="menu-btn" id="userLoginBtn" style="background: rgba(38, 125, 70, 0.7); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3);">
                 👤 Acceder
             </button>
-            <button onclick="cerrarSesion()" class="menu-btn" id="userLogoutBtn" style="background: #d62f2f; display: none; margin-left: 10px;">
+            <button onclick="cerrarSesion()" class="menu-btn" id="userLogoutBtn" style="background: rgba(214, 47, 47, 0.7); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); display: none; margin-left: 10px;">
                 Cerrar Sesión
             </button>
         </div>
     </div>
 
-    <div class="container" style="margin-top: 80px; min-height: 70vh;">
+    <div class="container" style="margin-top: 100px; min-height: 70vh;">
         
         <div class="top-wrapper">
             <div class="header">
                 <img src="src/images/LOGO.jpg" class="logo">
-                <h1>Taquiza La Rana</h1>
+                <h1>¡Bienvenido!</h1>
                 <p>Menú Digital - ¡Ordena Fácil!</p>
             </div>
 
@@ -71,10 +97,10 @@
                 <h2 class="category-title">⭐ Recomendados para ti</h2>
                 <div class="products" id="recommendedProducts">
                     
-                    <div id="empty-recommendation-msg" style="grid-column: 1 / -1; background: #fdfdfd; border: 2px dashed #267d46; border-radius: 12px; padding: 40px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+                    <div id="empty-recommendation-msg" style="grid-column: 1 / -1; background: rgba(253, 253, 253, 0.6); backdrop-filter: blur(10px); border: 2px dashed rgba(38, 125, 70, 0.6); border-radius: 12px; padding: 40px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
                         <span style="font-size: 3em; display: block; margin-bottom: 15px;">🐸🔮</span>
-                        <h3 style="color: #267d46; margin-bottom: 10px; font-size: 1.4em;">¡Queremos conocer tus gustos!</h3>
-                        <p style="color: #555; font-size: 1.05em; max-width: 600px; margin: 0 auto; line-height: 1.5;">
+                        <h3 style="color: #1a5730; margin-bottom: 10px; font-size: 1.4em;">¡Queremos conocer tus gustos!</h3>
+                        <p style="color: #333; font-size: 1.05em; max-width: 600px; margin: 0 auto; line-height: 1.5;">
                             Parece que eres nuevo por aquí o aún no has iniciado sesión.<br>
                             <b>Realiza tu primer pedido</b> para que La Rana pueda analizar tus preferencias y recomendarte tus platillos favoritos automáticamente.
                         </p>
@@ -104,12 +130,12 @@
         <div class="map-responsive">
             <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3820.7303039601053!2d-93.12328192415175!3d16.74416188403577!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ecd8ee34f59011%3A0xc3f1cf6c23ce5bd1!2sParque%20de%20la%20Marimba!5e0!3m2!1ses-419!2smx!4v1711571400000!5m2!1ses-419!2smx" width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
-        <p style="text-align: center; margin-top: 15px; color: #666; font-size: 1.1em;">
+        <p style="text-align: center; margin-top: 15px; color: #333; font-size: 1.1em; font-weight: bold;">
             📍 Visítanos en Tuxtla Gutiérrez, Chiapas. ¡Te esperamos con los mejores tacos!
         </p>
     </div>
 
-    <footer style="background-color: #2c3e50; color: #ecf0f1; padding: 40px 20px 20px 20px; text-align: center; border-top: 5px solid #267d46;">
+    <footer style="background: rgba(44, 62, 80, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #ecf0f1; padding: 40px 20px 20px 20px; text-align: center; border-top: 5px solid rgba(38, 125, 70, 0.8);">
         <div style="max-width: 800px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
             <div style="flex: 1; min-width: 250px;">
                 <h3 style="color: #f0ad4e; margin-bottom: 15px;">🐸 Acerca de Nosotros</h3>
@@ -131,7 +157,7 @@
                 </p>
             </div>
         </div>
-        <div style="margin-top: 30px; border-top: 1px solid #34495e; padding-top: 20px; font-size: 0.8em; color: #95a5a6;">
+        <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; font-size: 0.8em; color: #bdc3c7;">
             © 2026 Taquiza La Rana. Todos los derechos reservados.
         </div>
     </footer>
