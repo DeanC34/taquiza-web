@@ -517,10 +517,64 @@
             }
         });
 
-        window.canjearPuntos = () => {
+        window.canjearPuntos = async () => {   
             const puntosActuales = parseInt(document.getElementById("displayPuntos").innerText);
+            
             if(puntosActuales >= 50) {
-                Swal.fire('¡Felicidades!', 'Tienes suficientes puntos. Muestra este mensaje en caja o envíalo por WhatsApp con tu próximo pedido para reclamar tu jarra de agua.', 'success');
+                // Pedir confirmación antes de gastar los puntos
+                const { isConfirmed } = await Swal.fire({
+                    title: '¿Canjear 50 Puntos?',
+                    text: 'Se descontarán 50 Taqui-Puntos y se registrará tu jarra de agua gratis en tu historial.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#267d46',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, canjear',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (isConfirmed) {
+                    Swal.fire({ title: 'Procesando canje...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+                    try {
+                        const clienteRef = doc(db, "clientes", customerEmail);
+                        const clienteSnap = await getDoc(clienteRef);
+                        const datos = clienteSnap.data();
+
+                        const nuevosPuntos = puntosActuales - 50;
+
+                        // Factura de $0
+                        const nuevaFactura = {
+                            fecha: new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' }),
+                            detalle: "🎁 1x Jarra de Agua (Canje de Puntos)",
+                            total: 0
+                        };
+
+                        // Obtener el historial actual o crear uno nuevo si no existe
+                        let historialActualizado = datos.historial || [];
+                        historialActualizado.push(nuevaFactura);
+
+                        // Guardar los cambios en Firebase
+                        await updateDoc(clienteRef, { 
+                            puntos: nuevosPuntos,
+                            historial: historialActualizado
+                        });
+
+                        document.getElementById("displayPuntos").innerText = nuevosPuntos;
+                        cargarPerfilCRM(); // Recarga el historial para que aparezca la nueva factura al instante
+
+                        Swal.fire({
+                            title: '¡Felicidades!',
+                            html: 'Has canjeado exitosamente 50 puntos.<br>Muestra tu historial en caja o envíalo por WhatsApp con tu próximo pedido para reclamar tu jarra de agua.',
+                            icon: 'success',
+                            confirmButtonColor: '#267d46'
+                        });
+
+                    } catch (error) {
+                        console.error("Error al canjear puntos:", error);
+                        Swal.fire('Error', 'Hubo un problema al procesar tu canje. Inténtalo de nuevo.', 'error');
+                    }
+                }
             } else {
                 Swal.fire('Aún no', `Te faltan ${50 - puntosActuales} puntos. ¡Sigue disfrutando nuestra comida para acumular más!`, 'info');
             }

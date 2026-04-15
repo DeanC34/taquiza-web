@@ -11,7 +11,6 @@ function addToCart(name, price, stockActual) {
     const existingItem = cart.find(item => item.name === name);
     const cantidadDeseada = existingItem ? existingItem.quantity + 1 : 1;
 
-    // --- NUEVO: VALIDACIÓN DE STOCK ---
     if (cantidadDeseada > stock) {
         if (typeof Swal !== 'undefined') {
             Swal.fire({
@@ -101,9 +100,7 @@ window.onload = function() {
     updateCart();
 };
 
-// ------------------------------------------
-// 2. INTERFAZ Y ENVÍO
-// ------------------------------------------
+
 function toggleCart() {
     const modal = document.getElementById("cartModal");
     modal.classList.toggle("active");
@@ -135,9 +132,6 @@ function sendToWhatsApp() {
     window.open(url, "_blank");
 }
 
-// ------------------------------------------
-// 3. BÚSQUEDA Y NAVEGACIÓN GENERAL
-// ------------------------------------------
 function searchProducts() {
     let input = document.getElementById("searchInput").value.toLowerCase();
     let products = document.querySelectorAll(".product-card");
@@ -186,9 +180,6 @@ function goToAdmin() {
     window.location.href = "admin.html";
 }
 
-// ==========================================
-// 4. SIMULADOR DE PAGO EN LÍNEA Y CRM
-// ==========================================
 function processWebOrder() {
     if (cart.length === 0) {
         alert("Tu carrito está vacío.");
