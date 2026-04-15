@@ -10,35 +10,42 @@
 
     <style>
         /* === NUEVO ESTILO PARA LA TOOLBAR === */
-        .toolbar {
+            .toolbar { 
             position: fixed;
             top: 0;
             left: 0;
+            right: 0;
             width: 100%;
-            background-color: rgba(38, 125, 70, 0.95); /* Verde institucional */
-            padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
+            background: rgba(22, 69, 38, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            padding: 15px 30px;
+            z-index: 3000; 
             display: flex;
+            justify-content: space-between;
             align-items: center;
         }
 
-        .menu-btn {
-            background: #444;
+            .menu-btn {
+            background: rgba(255, 255, 255, 0.2); 
             color: white;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.4);
             padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
         }
 
         .menu-btn:hover {
-            background: #222;
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
         }
 
-        /* === AJUSTE DEL CONTENEDOR PRINCIPAL === */
         /* Se incrementó el margin-top para compensar la toolbar fija */
         .main-content {
             margin-top: 100px; 
@@ -50,7 +57,7 @@
 
         .header {
             text-align: center;
-            margin-bottom: 30px; /* Espacio debajo del título */
+            margin-bottom: 30px; 
         }
 
         /* Dashboard ERP / SCM */
@@ -100,7 +107,6 @@
         .btn-restock { background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 5px 10px; margin-top: 10px; transition: 0.3s; }
         .btn-restock:hover { background-color: #2980b9; }
 
-        /* Estilos genéricos (asumiendo que faltaban de tu styles.css) */
         .admin-form-container { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 10px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         details { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; background: white; }
         summary { padding: 15px; font-weight: bold; cursor: pointer; background: #f9f9f9; border-radius: 5px; }
