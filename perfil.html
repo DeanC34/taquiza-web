@@ -8,8 +8,48 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
+        /* === NUEVO ESTILO PARA LA TOOLBAR === */
+        .toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(38, 125, 70, 0.95); /* Verde institucional */
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-btn {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: #222;
+        }
+
+        /* === AJUSTE DEL CONTENEDOR PRINCIPAL === */
+        .main-content {
+            margin-top: 100px; /* Compensa el espacio de la toolbar fija */
+            padding-bottom: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .profile-container {
             padding: 20px;
+            width: 100%;
+            max-width: 800px; /* Centra y limita el ancho para que se vea bien en PC */
         }
 
         .profile-header {
@@ -27,6 +67,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            flex-wrap: wrap; /* Evita que el botón de editar rompa el diseño en móviles */
         }
 
         .profile-email {
@@ -131,8 +172,6 @@
         input:checked + .slider { background-color: #267d46; }
         input:checked + .slider:before { transform: translateX(26px); }
         
-        .back-btn { background: #666; margin-bottom: 20px; }
-
         /* Estilos Verificación y Edición de datos */
         .verification-box {
             background: #fff3cd;
@@ -163,7 +202,6 @@
         }
         .edit-data-btn:hover { background: #0056b3; }
         
-        /* Botón de edición de teléfono (más grande que el del nombre) */
         .edit-phone-btn {
             background: #007bff;
             color: white;
@@ -193,13 +231,13 @@
 </head>
 <body>
 
-    <div class="menu-dropdown">
-        <button onclick="window.location.href='index.html'" class="menu-btn back-btn" style="background: #666;">
+    <div class="toolbar">
+        <button onclick="window.location.href='index.html'" class="menu-btn">
             ⬅️ Volver al Menú
         </button>
     </div>
 
-    <div class="container" style="margin-top: 70px; padding-bottom: 50px;">
+    <div class="container main-content">
         <div class="profile-container">
             <div class="profile-header">
                 <h1 class="profile-name" id="displayNombre">
@@ -207,7 +245,7 @@
                     <button class="edit-data-btn" onclick="editarNombre()">✏️ Editar</button>
                 </h1>
                 <p class="profile-email" id="displayEmail">Cargando...</p>
-                <p id="displayPhone" style="color: #267d46; font-weight: bold; margin-top: 5px; display: flex; align-items: center; justify-content: center;">
+                <p id="displayPhone" style="color: #267d46; font-weight: bold; margin-top: 5px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
                     Cargando teléfono...
                 </p>
             </div>
@@ -257,7 +295,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
+        
         const customerEmail = localStorage.getItem("customerEmail");
         const customerName = localStorage.getItem("customerName");
 
