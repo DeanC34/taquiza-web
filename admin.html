@@ -404,7 +404,11 @@
             }
         }
 
-        async function verificarAccesoAdmin() {
+async function verificarAccesoAdmin() {
+            // 1. Ocultar todo el dashboard por seguridad inicial
+            document.getElementById("adminDashboard").style.display = "none";
+
+            // 2. Si ya hay una sesión activa de admin en sessionStorage, lo dejamos pasar
             if (sessionStorage.getItem("adminLogueado") === "true") {
                 document.getElementById("adminDashboard").style.display = "block";
                 cargarInventario();
@@ -412,6 +416,73 @@
                 cargarAlertasSCM();
                 return;
             }
+
+            // 3. Si no hay sesión, pedimos credenciales. 
+            // allowEscapeKey: false y allowOutsideClick: false evitan que salgan del modal sin hacer nada.
+            const result = await Swal.fire({
+                title: '🔒 Acceso Restringido',
+                html:
+                    '<input id="swal-email" type="email" class="swal2-input" placeholder="Correo Administrativo">' +
+                    '<input id="swal-pass" type="password" class="swal2-input" placeholder="Contraseña">',
+                focusConfirm: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showCancelButton: true,
+                cancelButtonText: 'Volver a la Tienda',
+                confirmButtonText: 'Entrar',
+                confirmButtonColor: '#267d46',
+                preConfirm: () => {
+                    const email = document.getElementById('swal-email').value;
+                    const pass = document.getElementById('swal-pass').value;
+                    if (!email || !pass) {
+                        Swal.showValidationMessage('Ingresa el correo y la contraseña');
+                        return false;
+                    }
+                    return { email, pass };
+                }
+            });
+
+            // 4. Si el usuario presiona "Volver a la Tienda" (Cancel) o cierra el modal de alguna forma
+            if (!result.isConfirmed) {
+                window.location.replace('index.html'); // Usamos replace() para que no puedan volver atrás con el navegador
+                return;
+            }
+
+            const formValues = result.value;
+
+            Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                // 5. Validar contra Firebase
+                const adminRef = doc(db, "admins", formValues.email);
+                const adminSnap = await getDoc(adminRef);
+
+                if (adminSnap.exists() && adminSnap.data().password === formValues.pass) {
+                    sessionStorage.setItem("adminLogueado", "true");
+                    Swal.fire({
+                        toast: true, position: 'top-end', icon: 'success', 
+                        title: '¡Bienvenido Administrador!', showConfirmButton: false, timer: 2000
+                    });
+                    
+                    // Solo hasta que las credenciales son correctas, mostramos el dashboard
+                    document.getElementById("adminDashboard").style.display = "block";
+                    cargarInventario(); 
+                    initChart(); 
+                    cargarAlertasSCM();
+                } else {
+                    // 6. Si las credenciales fallan, lo pateamos a index.html
+                    Swal.fire({
+                        title: 'Acceso Denegado', text: 'El correo o contraseña son incorrectos.', icon: 'error', confirmButtonColor: '#d33', allowOutsideClick: false
+                    }).then(() => {
+                        window.location.replace('index.html');
+                    });
+                }
+            } catch (error) {
+                Swal.fire('Error de conexión', 'Inténtalo de nuevo más tarde.', 'error').then(() => {
+                    window.location.replace('index.html');
+                });
+            }
+        }
 
             const { value: formValues } = await Swal.fire({
                 title: '🔒 Acceso Restringido',
@@ -465,7 +536,7 @@
             } catch (error) {
                 Swal.fire('Error de conexión', 'Inténtalo de nuevo más tarde.', 'error').then(() => window.location.href = 'index.html');
             }
-        }
+        
 
         verificarAccesoAdmin();
 
