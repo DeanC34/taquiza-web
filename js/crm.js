@@ -349,7 +349,7 @@ function enviarCodigoPorCorreo(nombre, correo, codigo) {
     }
 }
 
-window.cerrarSesion = function() {
+window.cerrarSesion = () => {
     Swal.fire({
         title: '¿Cerrar Sesión?',
         text: "Tendrás que volver a ingresar para hacer pedidos o usar puntos.",
@@ -360,15 +360,16 @@ window.cerrarSesion = function() {
         confirmButtonText: 'Sí, salir'
     }).then((result) => {
         if (result.isConfirmed) {
+            // ---> AQUÍ ESTÁN TUS LÍNEAS ACTUALES <---
             localStorage.removeItem("customerName");
             localStorage.removeItem("customerEmail");
             localStorage.removeItem("customerPhone");
             localStorage.removeItem("promoSubscribed");
             localStorage.removeItem("emailVerified");
-            localStorage.removeItem("verifyCode");
-            localStorage.removeItem("customerPass");
             
-            verificarSesionActiva(); 
+            // ---> ¡AGREGA ESTAS DOS LÍNEAS AQUÍ! <---
+            localStorage.removeItem("verifyCode");
+            sessionStorage.removeItem("adminLogueado");
             
             Swal.fire({
                 toast: true,
@@ -380,9 +381,7 @@ window.cerrarSesion = function() {
                 timer: 4000,
                 timerProgressBar: true
             }).then(() => {
-                if(window.location.pathname.includes("perfil.html") || window.location.pathname.includes("admin.html")) {
-                    window.location.href = "index.html";
-                }
+                window.location.reload(); // O redirigir a index.html
             });
         }
     });
