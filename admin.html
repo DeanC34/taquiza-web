@@ -484,60 +484,6 @@ async function verificarAccesoAdmin() {
             }
         }
 
-            const { value: formValues } = await Swal.fire({
-                title: '🔒 Acceso Restringido',
-                html:
-                    '<input id="swal-email" type="email" class="swal2-input" placeholder="Correo Administrativo">' +
-                    '<input id="swal-pass" type="password" class="swal2-input" placeholder="Contraseña">',
-                focusConfirm: false,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showCancelButton: true,
-                cancelButtonText: 'Volver a la Tienda',
-                confirmButtonText: 'Entrar',
-                confirmButtonColor: '#267d46',
-                preConfirm: () => {
-                    const email = document.getElementById('swal-email').value;
-                    const pass = document.getElementById('swal-pass').value;
-                    if (!email || !pass) {
-                        Swal.showValidationMessage('Ingresa el correo y la contraseña');
-                        return false;
-                    }
-                    return { email, pass };
-                }
-            });
-
-            if (!formValues) {
-                window.location.href = 'index.html';
-                return;
-            }
-
-            Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-            try {
-                const adminRef = doc(db, "admins", formValues.email);
-                const adminSnap = await getDoc(adminRef);
-
-                if (adminSnap.exists() && adminSnap.data().password === formValues.pass) {
-                    sessionStorage.setItem("adminLogueado", "true");
-                    Swal.fire({
-                        toast: true, position: 'top-end', icon: 'success', 
-                        title: '¡Bienvenido Administrador!', showConfirmButton: false, timer: 2000
-                    });
-                    document.getElementById("adminDashboard").style.display = "block";
-                    cargarInventario(); 
-                    initChart(); 
-                    cargarAlertasSCM();
-                } else {
-                    Swal.fire({
-                        title: 'Acceso Denegado', text: 'El correo o contraseña son incorrectos.', icon: 'error', confirmButtonColor: '#d33'
-                    }).then(() => window.location.href = 'index.html');
-                }
-            } catch (error) {
-                Swal.fire('Error de conexión', 'Inténtalo de nuevo más tarde.', 'error').then(() => window.location.href = 'index.html');
-            }
-        
-
         verificarAccesoAdmin();
 
         async function cargarInventario() {
