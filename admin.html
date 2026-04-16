@@ -118,10 +118,13 @@
     <div id="adminDashboard" style="display: none;">
         
         <div class="toolbar">
-            <button onclick="window.location.href='index.html'" class="menu-btn">
-                ⬅️ Volver al Menú
-            </button>
-        </div>
+                <button onclick="window.location.href='index.html'" class="menu-btn">
+                    ⬅️ Volver al Menú
+                </button>
+                <button onclick="cerrarSesionAdmin()" class="menu-btn" style="background: rgba(220, 53, 69, 0.7); border-color: rgba(255, 255, 255, 0.3);">
+                    🚪 Cerrar Sesión
+                </button>
+            </div>
 
         <div class="container main-content">
             <div class="header">
@@ -644,6 +647,41 @@ async function verificarAccesoAdmin() {
                 cargarAlertasSCM();
             } catch (e) {}
         });
+        // ==========================================
+        // FUNCIÓN PARA CERRAR SESIÓN DE ADMINISTRADOR
+        // ==========================================
+        window.cerrarSesionAdmin = () => {
+            Swal.fire({
+                title: '¿Cerrar sesión administrativa?',
+                text: "Tendrás que volver a ingresar tu contraseña para ver este panel.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#666',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 1. Destruir la llave mágica del administrador
+                    sessionStorage.removeItem("adminLogueado");
+                    
+                    // 2. Ocultar el dashboard inmediatamente por seguridad
+                    document.getElementById("adminDashboard").style.display = "none";
+                    
+                    // 3. Redirigir al inicio sin dejar rastro en el historial
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Sesión cerrada correctamente',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.replace("index.html");
+                    });
+                }
+            });
+        };
     </script>
 </body>
 </html>
