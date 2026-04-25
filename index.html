@@ -235,7 +235,7 @@
                             <div class="product-name">${data.nombre}</div>
                             <div class="product-price">$${data.precio}</div>
                             <button class="add-btn"
-                                onclick="addToCart('${data.nombre}', ${data.precio}, ${data.stock !== undefined ? data.stock : 0})">
+                                onclick="animarAlCarrito(event); addToCart('${data.nombre}', ${data.precio}, ${data.stock !== undefined ? data.stock : 0})">
                                 Agregar
                             </button>
                         </div>
@@ -393,5 +393,64 @@
         };
 
     </script>
+    
+    <style>
+        @keyframes shakeCart {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-10deg); }
+            50% { transform: scale(1.1) rotate(10deg); }
+            75% { transform: scale(1.1) rotate(-10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .shake-animation {
+            animation: shakeCart 0.4s ease-in-out !important;
+        }
+
+    </style>
+
+        <script>
+        window.animarAlCarrito = function(e) {
+            // 1. Crear el cuadradito
+            const cuadrado = document.createElement('div');
+            cuadrado.style.width = '20px';
+            cuadrado.style.height = '20px';
+            cuadrado.style.background = '#f0ad4e'; // Color naranja para resaltar
+            cuadrado.style.position = 'fixed';
+            cuadrado.style.borderRadius = '5px';
+            cuadrado.style.zIndex = '9999';
+            cuadrado.style.pointerEvents = 'none'; // Evitar que estorbe clics
+
+            // 2. Posición inicial (donde el usuario hizo clic)
+            cuadrado.style.left = e.clientX + 'px';
+            cuadrado.style.top = e.clientY + 'px';
+            cuadrado.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            document.body.appendChild(cuadrado);
+
+            // Forzar reflujo para que se aplique la transición
+            cuadrado.getBoundingClientRect();
+
+            // 3. Obtener coordenadas del botón del carrito destino
+            const carrito = document.querySelector('.cart-float');
+            const carritoRect = carrito.getBoundingClientRect();
+
+            // 4. Mover el cuadradito hacia el carrito
+            cuadrado.style.left = (carritoRect.left + carritoRect.width / 2 - 10) + 'px';
+            cuadrado.style.top = (carritoRect.top + carritoRect.height / 2 - 10) + 'px';
+            cuadrado.style.transform = 'scale(0.2) rotate(180deg)'; // Se hace pequeño dando vueltas
+            cuadrado.style.opacity = '0'; // Se desvanece al llegar
+
+            // 5. Eliminar el cuadradito y activar el temblor
+            setTimeout(() => {
+                cuadrado.remove();
+                carrito.classList.add('shake-animation');
+                // Quitar la clase del temblor cuando termine
+                setTimeout(() => {
+                    carrito.classList.remove('shake-animation');
+                }, 400); 
+            }, 600); // Esto coincide con la duración de la transición (0.6s)
+        };
+    </script>
+
 </body>
 </html>
