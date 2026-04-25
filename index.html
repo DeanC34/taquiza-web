@@ -230,7 +230,7 @@
                             <div class="product-image">
                                 <img src="${data.imagen_url}">
                                 <div class="overlay-blanco"></div>
-                                <button class="btn-ver-mas">Ver más</button>
+                                <button class="btn-ver-mas" onclick="abrirVistaRapida('${data.nombre.replace(/'/g, "\\'")}', ${data.precio}, '${data.imagen_url}', '${data.categoria}', ${data.stock !== undefined ? data.stock : 0})">Ver más</button>
                             </div>
                             <div class="product-name">${data.nombre}</div>
                             <div class="product-price">$${data.precio}</div>
@@ -394,6 +394,38 @@
 
     </script>
     
+    <div id="quickViewModal" class="quick-view-modal">
+        <div class="quick-view-content">
+            <button class="close-quick-view" onclick="cerrarVistaRapida()">×</button>
+            
+            <div class="qv-left-gallery">
+                <div class="qv-thumbnails" id="qvThumbnails">
+                    </div>
+                <div class="qv-main-image">
+                    <img id="qvMainImage" src="" alt="Producto">
+                </div>
+            </div>
+
+            <div class="qv-right-info">
+                <h2 id="qvProductName">Nombre del Producto</h2>
+                <p id="qvProductCategory" class="qv-category">Categoría</p>
+                
+                <div class="qv-rating">
+                    ⭐⭐⭐⭐⭐ <span>(0 Reseñas)</span>
+                </div>
+                
+                <p id="qvProductPrice" class="qv-price">$0</p>
+                
+                <p class="qv-description">
+                    Delicioso platillo preparado con los mejores ingredientes de la región. 
+                    <i>(Esta descripción la conectaremos más adelante desde la base de datos).</i>
+                </p>
+
+                <button class="qv-add-btn" id="qvAddBtn">Agregar a la bolsa</button>
+            </div>
+        </div>
+    </div>
+
     <style>
         @keyframes shakeCart {
             0% { transform: scale(1) rotate(0deg); }
@@ -405,6 +437,116 @@
 
         .shake-animation {
             animation: shakeCart 0.4s ease-in-out !important;
+        }
+
+        /* ESTILOS DEL MODAL VISTA RÁPIDA */
+        .quick-view-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+        
+        .quick-view-modal.active {
+            display: flex;
+        }
+
+        .quick-view-content {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: flex;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .close-quick-view {
+            position: absolute;
+            top: 15px; right: 20px;
+            background: #eee;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            border: none;
+            font-size: 1.5em;
+            color: #333;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+        .close-quick-view:hover { background: #ddd; transform: scale(1.1); }
+
+        .qv-left-gallery {
+            flex: 1.2;
+            display: flex;
+            padding: 20px;
+            gap: 15px;
+            background: #f8f9fa;
+            border-radius: 20px 0 0 20px;
+        }
+
+        .qv-thumbnails {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 70px;
+        }
+
+        .qv-thumb {
+            width: 70px; height: 70px;
+            background: white; border-radius: 10px;
+            object-fit: cover; cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .qv-thumb.active { border-color: #267d46; }
+
+        .qv-main-image {
+            flex: 1;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .qv-main-image img {
+            width: 100%; max-width: 350px;
+            border-radius: 15px; object-fit: contain;
+            mix-blend-mode: multiply; /* Ayuda a que fondos blancos se fundan */
+        }
+
+        .qv-right-info {
+            flex: 1;
+            padding: 40px 30px;
+            display: flex; flex-direction: column;
+        }
+
+        .qv-right-info h2 { font-size: 2.2em; margin-bottom: 5px; color: #111; line-height: 1.1; }
+        .qv-category { color: #888; font-size: 1em; margin-bottom: 15px; font-weight: bold; }
+        
+        .qv-rating { color: #111; margin-bottom: 20px; font-size: 1.1em;}
+        .qv-rating span { color: #888; font-size: 0.9em; font-weight: normal; }
+        
+        .qv-price { font-size: 1.8em; font-weight: bold; color: #111; margin-bottom: 20px; }
+        .qv-description { color: #555; line-height: 1.6; margin-bottom: 30px; flex-grow: 1; font-size: 1.05em; }
+        
+        .qv-add-btn {
+            background: #111; color: white; border: none;
+            padding: 18px; font-size: 1.1em; font-weight: bold;
+            border-radius: 30px; cursor: pointer; transition: all 0.3s ease;
+            width: 100%; margin-top: auto;
+        }
+        .qv-add-btn:hover { background: #333; transform: translateY(-2px); }
+
+        /* Responsive */
+        @media(max-width: 768px) {
+            .quick-view-content { flex-direction: column; }
+            .qv-left-gallery { border-radius: 20px 20px 0 0; }
+            .qv-thumbnails { display: none; } /* Ocultar miniaturas en móvil */
+            .qv-right-info { padding: 20px; }
         }
 
     </style>
@@ -449,6 +591,36 @@
                     carrito.classList.remove('shake-animation');
                 }, 400); 
             }, 600); // Esto coincide con la duración de la transición (0.6s)
+        };
+
+        // --- FUNCIONES DEL MODAL VISTA RÁPIDA ---
+        window.abrirVistaRapida = function(nombre, precio, imagen, categoria, stock) {
+            // Llenar los datos
+            document.getElementById('qvProductName').textContent = nombre;
+            document.getElementById('qvProductCategory').textContent = categoria;
+            document.getElementById('qvProductPrice').textContent = '$' + precio;
+            document.getElementById('qvMainImage').src = imagen;
+            
+            // Llenar las miniaturas (Por ahora repetimos la principal como base)
+            document.getElementById('qvThumbnails').innerHTML = `
+                <img src="${imagen}" class="qv-thumb active">
+                <div class="qv-thumb" style="background:#eee; display:flex; align-items:center; justify-content:center; font-size:0.7em; color:#999; text-align:center;">Próximamente</div>
+            `;
+
+            // Configurar el botón de agregar para que invoque el carrito y la animación
+            const btnAgregar = document.getElementById('qvAddBtn');
+            btnAgregar.onclick = function(e) {
+                animarAlCarrito(e);
+                addToCart(nombre, precio, stock);
+                cerrarVistaRapida(); // Oculta el modal despues de añadir
+            };
+
+            // Mostrar el modal
+            document.getElementById('quickViewModal').classList.add('active');
+        };
+
+        window.cerrarVistaRapida = function() {
+            document.getElementById('quickViewModal').classList.remove('active');
         };
     </script>
 
