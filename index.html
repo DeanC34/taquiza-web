@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menú Digital - Taquiza La Rana</title>
     
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=2">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -49,27 +49,27 @@
         </p>
     </div>
 
-    <div class="top-menu-bar">
-        <div class="menu-dropdown">
-            <button onclick="toggleMenu()" class="menu-btn">☰ Menú</button>
-            <div id="dropdownMenu" class="dropdown-content">
-                <button onclick="goToProfile()">👤 Perfil</button>
-                <button onclick="goToSettings()">⚙️ Ajustes</button>
-                <button onclick="goToAdmin()">🛠️ Administrador</button>
+    <div class="top-menu-bar" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; background: rgba(22, 69, 38, 0.85) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3) !important; padding: 15px 30px !important; display: flex !important; justify-content: space-between !important; align-items: center !important; z-index: 3000 !important; box-sizing: border-box !important;">
+            <div class="menu-dropdown" style="pointer-events: auto;">
+                <button onclick="toggleMenu()" class="menu-btn" style="background: rgba(248, 62, 87, 0.744) !important; color: white !important; border: 1px solid rgba(255, 255, 255, 0.4) !important; padding: 12px 20px !important; font-size: 18px !important; font-weight: bold !important; border-radius: 8px !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important; cursor: pointer !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;">☰ Menú</button>
+                <div id="dropdownMenu" class="dropdown-content">
+                    <button onclick="goToProfile()">👤 Perfil</button>
+                    <button onclick="goToSettings()">⚙️ Ajustes</button>
+                    <button onclick="goToAdmin()">🛠️ Administrador</button>
+                </div>
+            </div>
+
+            <div class="user-dropdown" style="pointer-events: auto; display: flex; gap: 10px; align-items: center;">
+                <button onclick="openLoginModal()" class="menu-btn" id="userLoginBtn" style="background: rgba(38, 125, 70, 0.7) !important; color: white !important; padding: 12px 20px !important; font-size: 16px !important; font-weight: bold !important; border-radius: 8px !important; border: 1px solid rgba(255,255,255,0.4) !important; backdrop-filter: blur(5px) !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important; cursor: pointer !important;">
+                    👤 Acceder
+                </button>
+                <button onclick="cerrarSesion()" class="menu-btn" id="userLogoutBtn" style="background: rgba(214, 47, 47, 0.8) !important; color: white !important; padding: 12px 20px !important; font-size: 16px !important; font-weight: bold !important; border-radius: 8px !important; border: 1px solid rgba(255,255,255,0.4) !important; display: none; backdrop-filter: blur(5px) !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important; cursor: pointer !important;">
+                    Cerrar Sesión
+                </button>
             </div>
         </div>
 
-        <div class="user-dropdown">
-            <button onclick="openLoginModal()" class="menu-btn" id="userLoginBtn" style="background: rgba(38, 125, 70, 0.7); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3);">
-                👤 Acceder
-            </button>
-            <button onclick="cerrarSesion()" class="menu-btn" id="userLogoutBtn" style="background: rgba(214, 47, 47, 0.7); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); display: none; margin-left: 10px;">
-                Cerrar Sesión
-            </button>
-        </div>
-    </div>
-
-    <div class="container" style="margin-top: 100px; min-height: 70vh;">
+        <div class="container" style="margin-top: 100px; min-height: 70vh;">
         
         <div class="top-wrapper">
             <div class="header">
@@ -225,10 +225,12 @@
                 querySnapshot.forEach((documento) => {
                     const data = documento.data(); 
                     
-                    const productHTML = `
+                    const productHTML = `           
                         <div class="product-card">
                             <div class="product-image">
                                 <img src="${data.imagen_url}">
+                                <div class="overlay-blanco"></div>
+                                <button class="btn-ver-mas">Ver más</button>
                             </div>
                             <div class="product-name">${data.nombre}</div>
                             <div class="product-price">$${data.precio}</div>
