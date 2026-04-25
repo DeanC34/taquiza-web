@@ -893,3 +893,26 @@ details[open] .details-content {
         display: block;
     }
 }
+/* =======================================
+   CORRECCIÓN DEL BOTÓN "VER MÁS" EN MÓVILES
+   ======================================= */
+@media (max-width: 768px) {
+    /* Quitamos el brillo blanco para que la foto siempre luzca bien */
+    .overlay-blanco {
+        display: none !important;
+    }
+
+    /* Hacemos el botón siempre visible, más pequeño y en la parte de abajo */
+    .btn-ver-mas {
+        opacity: 1 !important;
+        top: auto !important;
+        bottom: 10px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        padding: 6px 14px !important;
+        font-size: 14px !important;
+        background: rgba(214, 47, 47, 0.9) !important; /* Rojo ligeramente translúcido */
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
+    }
+}
