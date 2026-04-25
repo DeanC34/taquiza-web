@@ -111,10 +111,107 @@
         details { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; background: white; }
         summary { padding: 15px; font-weight: bold; cursor: pointer; background: #f9f9f9; border-radius: 5px; }
         .details-content { padding: 20px; }
+
+        /* =======================================
+           PANELES LATERALES (VENTANITAS) - ADMIN
+           ======================================= */
+        .side-deco {
+            display: none; 
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 5em;
+            opacity: 0.3;
+            z-index: -1;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+        .deco-left { left: 3%; }
+        .deco-right { right: 3%; }
+
+        .side-panel {
+            display: none; /* Ocultos por defecto en móviles/tablets */
+            position: fixed;
+            top: 100px; /* Altura bajo el toolbar */
+            width: 280px;
+            
+            /* Efecto Glassmorphism verde oscuro */
+            background: rgba(22, 69, 38, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            color: #ecf0f1;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .panel-left { left: 20px; }
+        .panel-right { right: 20px; }
+
+        .side-panel h3 {
+            color: #f0ad4e;
+            font-size: 1.05em;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+
+        .side-panel p, .side-panel li {
+            font-size: 0.85em;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .side-panel ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .side-panel .highlight {
+            color: #66eab7;
+            font-weight: bold;
+        }
+
+        /* SOLO MOSTRAR EN PANTALLAS GRANDES (Laptops/PCs) */
+        @media(min-width: 1350px) {
+            .side-panel, .side-deco {
+                display: block;
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <div class="side-deco deco-left">🐸</div>
+    <div class="side-deco deco-right">🐸</div>
+
+    <div class="side-panel panel-left" id="panelAyudaIzq" style="display: none;">
+        <h3>💡 Guía Rápida: Imágenes</h3>
+        <p>Para añadir o cambiar la foto de un platillo, no necesitas subir archivos, solo usar un enlace de internet.</p>
+        
+        <h4 style="color: #66eab7; margin-top: 15px; margin-bottom: 5px; font-size: 0.9em;">Pasos para PostImages:</h4>
+        <ol style="font-size: 0.85em; padding-left: 15px;">
+            <li>Sube tu foto a <a href="https://postimages.org/" target="_blank" style="color: #f0ad4e;">postimages.org</a>.</li>
+            <li>Copia el <strong>"Enlace directo"</strong> (el que termina en .jpg o .png).</li>
+            <li>Pégalo en el campo "🔗 Link (URL) de la Imagen" al agregar o editar.</li>
+        </ol>
+        <p style="margin-top: 10px; font-size: 0.8em; font-style: italic;">Nota: Si el platillo aparece en blanco en el menú, revisa que hayas copiado el "Enlace directo".</p>
+    </div>
+
+    <div class="side-panel panel-right" id="panelAyudaDer" style="display: none;">
+        <h3>🛠️ Gestión de Inventario</h3>
+        <p>Bienvenido al módulo ERP/SCM de <strong>Taquiza La Rana</strong>.</p>
+        <hr style="border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+        <ul>
+            <li><span class="highlight">KPIs (Rojo/Amarillo):</span> Monitorea los indicadores. Si un stock baja de 10, verás alertas aquí.</li>
+            <li><span class="highlight">Reabastecer:</span> Usa el botón azul "📦 Sumar Stock" para ingresos rápidos sin abrir el editor completo.</li>
+            <li><span class="highlight">Eliminar:</span> Borrar un platillo es definitivo, se cuidadoso con la papelera.</li>
+        </ul>
+    </div>
+
+
     <div id="adminDashboard" style="display: none;">
         
         <div class="toolbar">
@@ -409,13 +506,13 @@
 async function verificarAccesoAdmin() {
             // 1. Ocultar todo el dashboard por seguridad inicial
             document.getElementById("adminDashboard").style.display = "none";
+            // Ocultamos también los paneles laterales de ayuda hasta que se loguee
+            document.getElementById("panelAyudaIzq").style.display = "none";
+            document.getElementById("panelAyudaDer").style.display = "none";
 
             // 2. Si ya hay una sesión activa de admin en sessionStorage, lo dejamos pasar
             if (sessionStorage.getItem("adminLogueado") === "true") {
-                document.getElementById("adminDashboard").style.display = "block";
-                cargarInventario();
-                initChart(); 
-                cargarAlertasSCM();
+                mostrarDashboard();
                 return;
             }
 
@@ -466,11 +563,7 @@ async function verificarAccesoAdmin() {
                         title: '¡Bienvenido Administrador!', showConfirmButton: false, timer: 2000
                     });
                     
-                    // Solo hasta que las credenciales son correctas, mostramos el dashboard
-                    document.getElementById("adminDashboard").style.display = "block";
-                    cargarInventario(); 
-                    initChart(); 
-                    cargarAlertasSCM();
+                    mostrarDashboard();
                 } else {
                     // 6. Si las credenciales fallan, lo pateamos a index.html
                     Swal.fire({
@@ -485,6 +578,32 @@ async function verificarAccesoAdmin() {
                 });
             }
         }
+
+        // Función auxiliar para mostrar el panel y los datos solo si está logueado
+        function mostrarDashboard() {
+            document.getElementById("adminDashboard").style.display = "block";
+            // Mostramos los paneles de ayuda condicionados a CSS (@media query)
+            if(window.innerWidth >= 1350) {
+                document.getElementById("panelAyudaIzq").style.display = "block";
+                document.getElementById("panelAyudaDer").style.display = "block";
+            }
+            cargarInventario(); 
+            initChart(); 
+            cargarAlertasSCM();
+        }
+
+        // Event listener para ocultar/mostrar paneles laterales al redimensionar la ventana
+        window.addEventListener('resize', () => {
+            if (sessionStorage.getItem("adminLogueado") === "true") {
+                if (window.innerWidth >= 1350) {
+                    document.getElementById("panelAyudaIzq").style.display = "block";
+                    document.getElementById("panelAyudaDer").style.display = "block";
+                } else {
+                    document.getElementById("panelAyudaIzq").style.display = "none";
+                    document.getElementById("panelAyudaDer").style.display = "none";
+                }
+            }
+        });
 
         verificarAccesoAdmin();
 
@@ -669,6 +788,8 @@ async function verificarAccesoAdmin() {
                     
                     // 2. Ocultar el dashboard inmediatamente por seguridad
                     document.getElementById("adminDashboard").style.display = "none";
+                    document.getElementById("panelAyudaIzq").style.display = "none";
+                    document.getElementById("panelAyudaDer").style.display = "none";
                     
                     // 3. Redirigir al inicio sin dejar rastro en el historial
                     Swal.fire({
