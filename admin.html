@@ -240,10 +240,10 @@
                                     <option value="BEBIDAS">Bebidas</option>
                                 </select>
                             </div>
-                            <div class="admin-form-group">
-                                <label for="imagenPlatillo">Nombre de la Imagen (debe estar en src/images/)</label>
-                                <input type="text" id="imagenPlatillo" placeholder="Ej: tacos.jpg" required>
-                            </div>
+                                <div class="admin-form-group">
+                                    <label for="imagenPlatillo">🔗 Link (URL) de la Imagen</label>
+                                    <input type="text" id="imagenPlatillo" placeholder="Ej: https://i.postimg.cc/tacos.jpg" required>
+                                </div>
                             <button type="submit" class="admin-submit-btn">Guardar Platillo</button>
                         </form>
                     </div>
@@ -285,7 +285,7 @@
                     </div>
 
                     <div class="admin-form-group">
-                        <label>Nombre de la Imagen (debe estar en src/images/)</label>
+                        <label>🔗 Link (URL) de la Imagen</label>
                         <input type="text" id="editImagen" required>
                     </div>
 
@@ -303,7 +303,6 @@
             apiKey: "AIzaSyBN39V3BfL29_jh8SnGD43xdJzwm_2FolM",
             authDomain: "taquiza-web.firebaseapp.com",
             projectId: "taquiza-web",
-            storageBucket: "taquiza-web.firebasestorage.app",
             messagingSenderId: "475601236604",
             appId: "1:475601236604:web:775b368768e9822789cff9"
         };
@@ -502,7 +501,7 @@ async function verificarAccesoAdmin() {
                 querySnapshot.forEach((documento) => {
                     const data = documento.data();
                     const id = documento.id;
-                    const nombreArchivoImg = data.imagen_url ? data.imagen_url.replace("src/images/", "") : "";
+                    const imagenCompleta = data.imagen_url || ""; // <-- Toma la URL completa
                     const stock = data.stock !== undefined ? data.stock : 0;
                     const ventas = data.ventas !== undefined ? data.ventas : 0; // Mostrar ventas en inventario
 
@@ -520,7 +519,7 @@ async function verificarAccesoAdmin() {
                                     📦 Sumar Stock
                                 </button>
                                 <button class="btn-action btn-edit" 
-                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${nombreArchivoImg}', ${stock})">
+                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${imagenCompleta}', ${stock})">
                                     ✏️ Editar
                                 </button>
                                 <button class="btn-action btn-delete" 
@@ -590,7 +589,7 @@ async function verificarAccesoAdmin() {
             const precioNuevo = Number(document.getElementById('editPrecio').value);
             const stockNuevo = Number(document.getElementById('editStock').value);
             const categoriaNueva = document.getElementById('editCategoria').value;
-            const imagenNueva = document.getElementById('editImagen').value;
+            const imagenNueva = document.getElementById('editImagen').value; // <-- URL de internet
             
             try {
                 const platilloRef = doc(db, "menu_items", id);
@@ -599,15 +598,15 @@ async function verificarAccesoAdmin() {
                     precio: precioNuevo,
                     stock: stockNuevo,
                     categoria: categoriaNueva,
-                    imagen_url: "src/images/" + imagenNueva
+                    imagen_url: imagenNueva // <-- Se guarda tal cual
                 });
-                alert("¡Platillo actualizado correctamente!");
+                Swal.fire('¡Actualizado!', 'Platillo actualizado correctamente.', 'success');
                 cerrarModalEditar();
                 cargarInventario();
                 initChart(); 
                 cargarAlertasSCM();
             } catch (error) {
-                alert("Hubo un error al actualizar el platillo.");
+                Swal.fire('Error', 'Hubo un error al actualizar el platillo.', 'error');
             }
         });
 
@@ -629,23 +628,26 @@ async function verificarAccesoAdmin() {
             const precio = Number(document.getElementById('precioPlatillo').value);
             const stock = Number(document.getElementById('stockPlatillo').value);
             const categoria = document.getElementById('categoriaPlatillo').value;
-            const imagen = document.getElementById('imagenPlatillo').value;
+            const imagen = document.getElementById('imagenPlatillo').value; // <-- URL de internet
+            
             try {
                 await addDoc(collection(db, "menu_items"), {
                     nombre: nombre,
                     precio: precio,
                     stock: stock,
-                    ventas: 0, // Inicia con 0 ventas
+                    ventas: 0,
                     categoria: categoria,
-                    imagen_url: "src/images/" + imagen,
+                    imagen_url: imagen, // <-- Se guarda tal cual
                     fecha_creacion: new Date()
                 });
-                alert("Éxito!: Platillo agregado correctamente.");
+                Swal.fire('¡Éxito!', 'Platillo agregado correctamente.', 'success');
                 document.getElementById('addPlatilloForm').reset(); 
                 cargarInventario();
                 initChart(); 
                 cargarAlertasSCM();
-            } catch (e) {}
+            } catch (e) {
+                Swal.fire('Error', 'No se pudo agregar el platillo.', 'error');
+            }
         });
         // ==========================================
         // FUNCIÓN PARA CERRAR SESIÓN DE ADMINISTRADOR
