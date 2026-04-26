@@ -625,6 +625,9 @@ async function verificarAccesoAdmin() {
 
         verificarAccesoAdmin();
 
+        // Objeto global para guardar la data temporalmente y no romper el HTML
+        window.adminMenuData = {};
+
         async function cargarInventario() {
             const inventoryList = document.getElementById('inventoryList');
             inventoryList.innerHTML = '<p style="text-align:center;">Cargando inventario...</p>';
@@ -638,14 +641,14 @@ async function verificarAccesoAdmin() {
                 querySnapshot.forEach((documento) => {
                     const data = documento.data();
                     const id = documento.id;
-                    const imagenCompleta = data.imagen_url || ""; 
+                    
+                    // 1. GUARDAMOS LOS DATOS EN MEMORIA usando su ID
+                    window.adminMenuData[id] = data; 
+
                     const stock = data.stock !== undefined ? data.stock : 0;
                     const ventas = data.ventas !== undefined ? data.ventas : 0;
-                    
-                    // NUEVO: Rescatar descripción e imágenes extra limpiando comillas para no romper el HTML
-                    const descripcionSegura = data.descripcion ? data.descripcion.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
-                    const imagenesExtraStr = data.imagenes_extra && data.imagenes_extra.length > 0 ? data.imagenes_extra.join(', ') : '';
 
+                    // 2. EL BOTÓN AHORA SOLO RECIBE EL ID (Mucho más seguro y limpio)
                     html += `
                         <div class="inventory-item">
                             <img src="${data.imagen_url}" class="inventory-img" alt="${data.nombre}">
@@ -660,7 +663,7 @@ async function verificarAccesoAdmin() {
                                     📦 Sumar Stock
                                 </button>
                                 <button class="btn-action btn-edit" 
-                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${imagenCompleta}', ${stock}, '${descripcionSegura}', '${imagenesExtraStr}')">
+                                    onclick="abrirModalEditar('${id}')">
                                     ✏️ Editar
                                 </button>
                                 <button class="btn-action btn-delete" 
@@ -711,15 +714,25 @@ async function verificarAccesoAdmin() {
             }
         };
 
-        window.abrirModalEditar = (id, nombre, precio, categoria, imagen, stock, descripcion, imagenesExtra) => {
+        window.abrirModalEditar = (id) => {
+            // Buscamos la información en nuestro almacén temporal
+            const platillo = window.adminMenuData[id];
+            if (!platillo) return;
+
             document.getElementById('editId').value = id;
-            document.getElementById('editNombre').value = nombre;
-            document.getElementById('editPrecio').value = precio;
-            document.getElementById('editCategoria').value = categoria;
-            document.getElementById('editImagen').value = imagen;
-            document.getElementById('editStock').value = stock;
-            document.getElementById('editDescripcion').value = descripcion || '';
-            document.getElementById('editImagenesExtra').value = imagenesExtra || '';
+            document.getElementById('editNombre').value = platillo.nombre || '';
+            document.getElementById('editPrecio').value = platillo.precio || 0;
+            document.getElementById('editCategoria').value = platillo.categoria || 'PLATILLOS';
+            document.getElementById('editImagen').value = platillo.imagen_url || '';
+            document.getElementById('editStock').value = platillo.stock !== undefined ? platillo.stock : 0;
+            document.getElementById('editDescripcion').value = platillo.descripcion || '';
+            
+            // Volvemos a armar la lista de imágenes extra separadas por coma
+            const imagenesExtraStr = platillo.imagenes_extra && platillo.imagenes_extra.length > 0 
+                                     ? platillo.imagenes_extra.join(', ') 
+                                     : '';
+            document.getElementById('editImagenesExtra').value = imagenesExtraStr;
+            
             document.getElementById('editModal').classList.add('active');
         };
 
