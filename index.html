@@ -213,6 +213,8 @@
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const db = getFirestore(app);
 
+        window.menuData = {}; // Guarda los datos para la Vista Rápida
+
         async function cargarMenu() {
             try {
                 const querySnapshot = await getDocs(collection(db, "menu_items"));
@@ -222,15 +224,18 @@
                 platillosContainer.innerHTML = "";
                 bebidasContainer.innerHTML = "";
 
-                querySnapshot.forEach((documento) => {
+                    querySnapshot.forEach((documento) => {
                     const data = documento.data(); 
+                    
+                    // Almacenamos el producto entero usando su ID de Firebase
+                    window.menuData[documento.id] = data; 
                     
                     const productHTML = `           
                         <div class="product-card">
                             <div class="product-image">
                                 <img src="${data.imagen_url}">
                                 <div class="overlay-blanco"></div>
-                                <button class="btn-ver-mas" onclick="abrirVistaRapida('${data.nombre.replace(/'/g, "\\'")}', ${data.precio}, '${data.imagen_url}', '${data.categoria}', ${data.stock !== undefined ? data.stock : 0})">Ver más</button>
+                                <button class="btn-ver-mas" onclick="abrirVistaRapida('${documento.id}')">Ver más</button>
                             </div>
                             <div class="product-name">${data.nombre}</div>
                             <div class="product-price">$${data.precio}</div>
@@ -392,6 +397,54 @@
             }
         };
 
+        // --- FUNCIÓN PARA CALIFICAR (FIREBASE) ---
+        window.calificarProducto = async (estrellas) => {
+            const email = localStorage.getItem("customerEmail");
+            if (!email) {
+                Swal.fire('¡Inicia Sesión!', 'Debes acceder con tu cuenta para calificar los platillos.', 'info');
+                return;
+            }
+
+            const docId = window.productoActualId;
+            const userRatingKey = `rated_${docId}_${email}`; // Clave para evitar doble voto localmente
+
+            if(localStorage.getItem(userRatingKey)) {
+                Swal.fire('¡Gracias!', 'Ya has calificado este platillo anteriormente.', 'warning');
+                return;
+            }
+
+            try {
+                const productoRef = doc(db, "menu_items", docId);
+                const productoSnap = await getDoc(productoRef);
+
+                if (productoSnap.exists()) {
+                    const data = productoSnap.data();
+                    let currentRating = data.rating || 0;
+                    let currentReviews = data.num_resenas || 0;
+
+                    // Matemáticas para el nuevo promedio de estrellas
+                    let newReviews = currentReviews + 1;
+                    let newRating = ((currentRating * currentReviews) + estrellas) / newReviews;
+
+                    await updateDoc(productoRef, {
+                        rating: newRating,
+                        num_resenas: newReviews
+                    });
+
+                    // Actualizar datos temporalmente en pantalla
+                    window.menuData[docId].rating = newRating;
+                    window.menuData[docId].num_resenas = newReviews;
+                    localStorage.setItem(userRatingKey, "true"); // Bloquear nuevo voto
+                    
+                    window.actualizarEstrellasUI(newRating, newReviews);
+                    Swal.fire('¡Calificado!', 'Tus estrellas han sido registradas.', 'success');
+                }
+            } catch (error) {
+                console.error("Error al calificar:", error);
+                Swal.fire('Error', 'No pudimos registrar tu calificación.', 'error');
+            }
+        };
+
     </script>
     
     <div id="quickViewModal" class="quick-view-modal">
@@ -411,14 +464,13 @@
                 <p id="qvProductCategory" class="qv-category">Categoría</p>
                 
                 <div class="qv-rating">
-                    ⭐⭐⭐⭐⭐ <span>(0 Reseñas)</span>
+                    <span id="qvStars"></span> <span id="qvReviewsCount">(0 Reseñas)</span>
                 </div>
                 
                 <p id="qvProductPrice" class="qv-price">$0</p>
                 
-                <p class="qv-description">
-                    Delicioso platillo preparado con los mejores ingredientes de la región. 
-                    <i>(Esta descripción la conectaremos más adelante desde la base de datos).</i>
+                <p class="qv-description" id="qvProductDescription">
+                    Cargando información...
                 </p>
 
                 <button class="qv-add-btn" id="qvAddBtn">Agregar a la bolsa</button>
@@ -594,34 +646,74 @@
         };
 
         // --- FUNCIONES DEL MODAL VISTA RÁPIDA ---
-        window.abrirVistaRapida = function(nombre, precio, imagen, categoria, stock) {
-            // Llenar los datos
-            document.getElementById('qvProductName').textContent = nombre;
-            document.getElementById('qvProductCategory').textContent = categoria;
-            document.getElementById('qvProductPrice').textContent = '$' + precio;
-            document.getElementById('qvMainImage').src = imagen;
-            
-            // Llenar las miniaturas (Por ahora repetimos la principal como base)
-            document.getElementById('qvThumbnails').innerHTML = `
-                <img src="${imagen}" class="qv-thumb active">
-                <div class="qv-thumb" style="background:#eee; display:flex; align-items:center; justify-content:center; font-size:0.7em; color:#999; text-align:center;">Próximamente</div>
-            `;
+        window.abrirVistaRapida = function(docId) {
+            const producto = window.menuData[docId];
+            if(!producto) return;
 
-            // Configurar el botón de agregar para que invoque el carrito y la animación
+            window.productoActualId = docId; // Guardar ID para cuando el usuario califique
+
+            // 1. Textos y Base
+            document.getElementById('qvProductName').textContent = producto.nombre || 'Sin nombre';
+            document.getElementById('qvProductCategory').textContent = producto.categoria || '';
+            document.getElementById('qvProductPrice').textContent = '$' + (producto.precio || 0);
+            document.getElementById('qvMainImage').src = producto.imagen_url;
+            
+            // Si la BD no tiene descripción, pone un texto por defecto
+            document.getElementById('qvProductDescription').innerHTML = producto.descripcion || '<i>Delicioso platillo de La Rana. (Añade una descripción en el panel de administrador).</i>';
+
+            // 2. Renderizar Estrellas Promedio
+            actualizarEstrellasUI(producto.rating || 0, producto.num_resenas || 0);
+
+            // 3. Renderizar Galería (Imágenes Extras + Principal)
+            let thumbsHTML = `<img src="${producto.imagen_url}" class="qv-thumb active" onclick="cambiarImagenPrincipal(this, '${producto.imagen_url}')">`;
+            
+            if (producto.imagenes_extra && producto.imagenes_extra.length > 0) {
+                // Si hay imágenes en la BD, las mostramos
+                producto.imagenes_extra.forEach(img => {
+                    thumbsHTML += `<img src="${img}" class="qv-thumb" onclick="cambiarImagenPrincipal(this, '${img}')">`;
+                });
+            } else {
+                // Si no hay extra, muestra el cuadro de "Próximamente"
+                thumbsHTML += `<div class="qv-thumb" style="background:#eee; display:flex; align-items:center; justify-content:center; font-size:0.7em; color:#999; text-align:center; cursor:default;">Próximamente</div>`;
+            }
+            document.getElementById('qvThumbnails').innerHTML = thumbsHTML;
+
+            // 4. Configurar botón de carrito
             const btnAgregar = document.getElementById('qvAddBtn');
             btnAgregar.onclick = function(e) {
                 animarAlCarrito(e);
-                addToCart(nombre, precio, stock);
-                cerrarVistaRapida(); // Oculta el modal despues de añadir
+                addToCart(producto.nombre, producto.precio, producto.stock !== undefined ? producto.stock : 0);
+                cerrarVistaRapida();
             };
 
-            // Mostrar el modal
             document.getElementById('quickViewModal').classList.add('active');
         };
 
         window.cerrarVistaRapida = function() {
             document.getElementById('quickViewModal').classList.remove('active');
         };
+
+        window.cambiarImagenPrincipal = function(elemento, src) {
+            document.getElementById('qvMainImage').src = src;
+            const thumbs = document.querySelectorAll('.qv-thumb');
+            thumbs.forEach(t => t.classList.remove('active'));
+            elemento.classList.add('active');
+        };
+
+        window.actualizarEstrellasUI = function(promedio, numResenas) {
+            let starsHTML = '';
+            for(let i = 1; i <= 5; i++) {
+                // Pinta de dorado si está dentro del promedio, o gris si está vacía
+                let color = i <= Math.round(promedio) ? '#f0ad4e' : '#ccc';
+                starsHTML += `<span style="cursor:pointer; font-size:1.3em; color:${color}; transition:transform 0.2s;" 
+                                onclick="calificarProducto(${i})" 
+                                onmouseover="this.style.transform='scale(1.2)'" 
+                                onmouseout="this.style.transform='scale(1)'">★</span>`;
+            }
+            document.getElementById('qvStars').innerHTML = starsHTML;
+            document.getElementById('qvReviewsCount').textContent = `(${numResenas} Reseñas)`;
+        };
+
     </script>
 
 </body>

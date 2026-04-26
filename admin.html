@@ -340,7 +340,15 @@
                                 <div class="admin-form-group">
                                     <label for="imagenPlatillo">🔗 Link (URL) de la Imagen</label>
                                     <input type="text" id="imagenPlatillo" placeholder="Ej: https://i.postimg.cc/tacos.jpg" required>
-                                </div>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="descripcionPlatillo">📝 Descripción del Platillo</label>
+                                <textarea id="descripcionPlatillo" placeholder="Ej: Delicioso platillo preparado con..." rows="3" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;" required></textarea>
+                            </div>
+                            <div class="admin-form-group">
+                                <label for="imagenesExtraPlatillo">📸 Imágenes Extra (Opcional - URLs separadas por comas)</label>
+                                <input type="text" id="imagenesExtraPlatillo" placeholder="Ej: url1.jpg, url2.jpg, url3.png">
+                            </div>
                             <button type="submit" class="admin-submit-btn">Guardar Platillo</button>
                         </form>
                     </div>
@@ -384,6 +392,16 @@
                     <div class="admin-form-group">
                         <label>🔗 Link (URL) de la Imagen</label>
                         <input type="text" id="editImagen" required>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label>📝 Descripción</label>
+                        <textarea id="editDescripcion" rows="3" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;" required></textarea>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label>📸 Imágenes Extra (URLs separadas por comas)</label>
+                        <input type="text" id="editImagenesExtra">
                     </div>
 
                     <button type="submit" class="admin-submit-btn btn-update">💾 Guardar Cambios</button>
@@ -620,9 +638,13 @@ async function verificarAccesoAdmin() {
                 querySnapshot.forEach((documento) => {
                     const data = documento.data();
                     const id = documento.id;
-                    const imagenCompleta = data.imagen_url || ""; // <-- Toma la URL completa
+                    const imagenCompleta = data.imagen_url || ""; 
                     const stock = data.stock !== undefined ? data.stock : 0;
-                    const ventas = data.ventas !== undefined ? data.ventas : 0; // Mostrar ventas en inventario
+                    const ventas = data.ventas !== undefined ? data.ventas : 0;
+                    
+                    // NUEVO: Rescatar descripción e imágenes extra limpiando comillas para no romper el HTML
+                    const descripcionSegura = data.descripcion ? data.descripcion.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+                    const imagenesExtraStr = data.imagenes_extra && data.imagenes_extra.length > 0 ? data.imagenes_extra.join(', ') : '';
 
                     html += `
                         <div class="inventory-item">
@@ -638,7 +660,7 @@ async function verificarAccesoAdmin() {
                                     📦 Sumar Stock
                                 </button>
                                 <button class="btn-action btn-edit" 
-                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${imagenCompleta}', ${stock})">
+                                    onclick="abrirModalEditar('${id}', '${data.nombre}', ${data.precio}, '${data.categoria}', '${imagenCompleta}', ${stock}, '${descripcionSegura}', '${imagenesExtraStr}')">
                                     ✏️ Editar
                                 </button>
                                 <button class="btn-action btn-delete" 
@@ -689,18 +711,21 @@ async function verificarAccesoAdmin() {
             }
         };
 
-        window.abrirModalEditar = (id, nombre, precio, categoria, imagen, stock) => {
+        window.abrirModalEditar = (id, nombre, precio, categoria, imagen, stock, descripcion, imagenesExtra) => {
             document.getElementById('editId').value = id;
             document.getElementById('editNombre').value = nombre;
             document.getElementById('editPrecio').value = precio;
             document.getElementById('editCategoria').value = categoria;
             document.getElementById('editImagen').value = imagen;
             document.getElementById('editStock').value = stock;
+            document.getElementById('editDescripcion').value = descripcion || '';
+            document.getElementById('editImagenesExtra').value = imagenesExtra || '';
             document.getElementById('editModal').classList.add('active');
         };
 
         window.cerrarModalEditar = () => document.getElementById('editModal').classList.remove('active');
 
+        // FORMULARIO DE EDICIÓN
         document.getElementById('editPlatilloForm').addEventListener('submit', async (e) => {
             e.preventDefault(); 
             const id = document.getElementById('editId').value;
@@ -708,7 +733,12 @@ async function verificarAccesoAdmin() {
             const precioNuevo = Number(document.getElementById('editPrecio').value);
             const stockNuevo = Number(document.getElementById('editStock').value);
             const categoriaNueva = document.getElementById('editCategoria').value;
-            const imagenNueva = document.getElementById('editImagen').value; // <-- URL de internet
+            const imagenNueva = document.getElementById('editImagen').value;
+            const descripcionNueva = document.getElementById('editDescripcion').value;
+            
+            // Convierte el texto de imágenes separado por comas en un arreglo (array)
+            const imgExtraRaw = document.getElementById('editImagenesExtra').value;
+            const imagenesExtraArray = imgExtraRaw ? imgExtraRaw.split(',').map(url => url.trim()).filter(url => url !== '') : [];
             
             try {
                 const platilloRef = doc(db, "menu_items", id);
@@ -717,7 +747,9 @@ async function verificarAccesoAdmin() {
                     precio: precioNuevo,
                     stock: stockNuevo,
                     categoria: categoriaNueva,
-                    imagen_url: imagenNueva // <-- Se guarda tal cual
+                    imagen_url: imagenNueva,
+                    descripcion: descripcionNueva,
+                    imagenes_extra: imagenesExtraArray
                 });
                 Swal.fire('¡Actualizado!', 'Platillo actualizado correctamente.', 'success');
                 cerrarModalEditar();
@@ -741,13 +773,19 @@ async function verificarAccesoAdmin() {
             }
         };
 
+        // FORMULARIO DE AGREGAR
         document.getElementById('addPlatilloForm').addEventListener('submit', async (e) => {
             e.preventDefault(); 
             const nombre = document.getElementById('nombrePlatillo').value;
             const precio = Number(document.getElementById('precioPlatillo').value);
             const stock = Number(document.getElementById('stockPlatillo').value);
             const categoria = document.getElementById('categoriaPlatillo').value;
-            const imagen = document.getElementById('imagenPlatillo').value; // <-- URL de internet
+            const imagen = document.getElementById('imagenPlatillo').value; 
+            const descripcion = document.getElementById('descripcionPlatillo').value;
+            
+            // Convierte el texto de imágenes separadas por comas en un arreglo
+            const imgExtraRaw = document.getElementById('imagenesExtraPlatillo').value;
+            const imagenesExtraArray = imgExtraRaw ? imgExtraRaw.split(',').map(url => url.trim()).filter(url => url !== '') : [];
             
             try {
                 await addDoc(collection(db, "menu_items"), {
@@ -756,7 +794,11 @@ async function verificarAccesoAdmin() {
                     stock: stock,
                     ventas: 0,
                     categoria: categoria,
-                    imagen_url: imagen, // <-- Se guarda tal cual
+                    imagen_url: imagen,
+                    descripcion: descripcion,
+                    imagenes_extra: imagenesExtraArray,
+                    rating: 0, // Inicializa con 0 estrellas
+                    num_resenas: 0, // Inicializa con 0 reseñas
                     fecha_creacion: new Date()
                 });
                 Swal.fire('¡Éxito!', 'Platillo agregado correctamente.', 'success');
@@ -768,6 +810,7 @@ async function verificarAccesoAdmin() {
                 Swal.fire('Error', 'No se pudo agregar el platillo.', 'error');
             }
         });
+
         // ==========================================
         // FUNCIÓN PARA CERRAR SESIÓN DE ADMINISTRADOR
         // ==========================================
