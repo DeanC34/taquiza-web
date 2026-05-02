@@ -46,14 +46,77 @@ overflow:hidden;
 ========================= */
 .top-wrapper {
     display: grid;
-    /* Creamos 3 columnas: un espacio vacío, el centro, y los horarios */
     grid-template-columns: 300px 1fr 300px;
+    /* REEMPLAZO: Cambiamos el "." inicial por "rating" para ubicar la tarjeta */
     grid-template-areas:
-        ". header horarios"
+        "rating header horarios"
         "search search search";
     padding: 20px 30px 0 30px;
     gap: 20px;
     align-items: center;
+}
+
+/* =========================
+TARJETA DE CALIFICACIÓN GLOBAL
+========================= */
+.rating-card {
+    grid-area: rating;
+    background: #fdfdfd;
+    border-left: 6px solid #f0ad4e; /* Borde dorado */
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.rating-card h3 {
+    color: #2c3e50;
+    font-size: 1.1em;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+    text-align: center;
+}
+
+.global-rating-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.big-rating {
+    font-size: 2.8em;
+    font-weight: bold;
+    color: #333;
+    line-height: 1;
+}
+
+.stars-and-reviews {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.global-stars {
+    font-size: 1.3em;
+    color: #f0ad4e; /* Estrellas doradas */
+    letter-spacing: 2px;
+}
+
+.total-reviews {
+    font-size: 0.85em;
+    color: #777;
+    margin-top: 3px;
+    font-weight: bold;
+}
+
+.rating-subtitle {
+    font-size: 0.8em;
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    margin-top: 5px;
 }
 
 .header { 
@@ -697,6 +760,12 @@ details[open] .details-content {
    RESPONSIVE UNIFICADO (ÚNICO BLOQUE AL FINAL)
 ========================= */
 @media(max-width:768px){
+    .rating-card { 
+        order: 3; /* Se colocará entre la barra de búsqueda y los horarios */
+        width: 100%; 
+        margin-top: 10px;
+    }
+    
     /* Ajuste de la estructura superior en móvil */
     .top-wrapper {
         display: flex;

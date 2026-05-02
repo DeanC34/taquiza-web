@@ -72,6 +72,19 @@
         <div class="container" style="margin-top: 100px; min-height: 70vh;">
         
         <div class="top-wrapper">
+            <div class="rating-card">
+                <h3>⭐ Opiniones Locales</h3>
+                <div class="global-rating-content">
+                    <span class="big-rating" id="globalScore">0.0</span>
+                    <div class="stars-and-reviews">
+                        <div class="global-stars" id="globalStars">
+                            <span style="color:#ccc">★</span><span style="color:#ccc">★</span><span style="color:#ccc">★</span><span style="color:#ccc">★</span><span style="color:#ccc">★</span>
+                        </div>
+                        <span class="total-reviews" id="globalReviews">(0 reseñas)</span>
+                    </div>
+                </div>
+                <p class="rating-subtitle">Basado en reseñas de nuestros platillos</p>
+            </div>
             <div class="header">
                 <img src="src/images/LOGO.jpg" class="logo">
                 <h1>¡Bienvenido!</h1>
@@ -215,6 +228,43 @@
 
         window.menuData = {}; // Guarda los datos para la Vista Rápida
 
+        // Calcula el promedio global leyendo todas las estrellas de la BD
+        window.calcularYMostrarCalificacionGlobal = async () => {
+            try {
+                const querySnapshot = await getDocs(collection(db, "menu_items"));
+                let sumaTotalPuntos = 0;
+                let totalOpiniones = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const rating = data.rating || 0;
+                    const resenas = data.num_resenas || 0;
+                    
+                    // Multiplicamos el promedio del platillo por su número de reseñas para obtener el peso real
+                    sumaTotalPuntos += (rating * resenas);
+                    totalOpiniones += resenas;
+                });
+
+                // Calcula el promedio general de la Taquería
+                const promedioGlobal = totalOpiniones > 0 ? (sumaTotalPuntos / totalOpiniones).toFixed(1) : "0.0";
+                
+                // Actualiza los textos
+                document.getElementById('globalScore').innerText = promedioGlobal;
+                document.getElementById('globalReviews').innerText = `(${totalOpiniones} reseñas)`;
+
+                // Pinta las estrellas correspondientes (Dorado o Gris)
+                let starsHTML = '';
+                const roundProm = Math.round(promedioGlobal);
+                for(let i = 1; i <= 5; i++) {
+                    starsHTML += i <= roundProm ? '★' : '<span style="color:#ccc">★</span>';
+                }
+                document.getElementById('globalStars').innerHTML = starsHTML;
+
+            } catch (error) {
+                console.error("Error al calcular el rating global de la Taquería:", error);
+            }
+        };
+
         async function cargarMenu() {
             try {
                 const querySnapshot = await getDocs(collection(db, "menu_items"));
@@ -252,6 +302,7 @@
                         bebidasContainer.innerHTML += productHTML;
                     }
                 });
+                window.calcularYMostrarCalificacionGlobal();
             } catch (error) {
                 console.error("Error al cargar el menú:", error);
                 document.getElementById("platillos-container").innerHTML = "<p>Error al cargar el menú.</p>";
@@ -435,6 +486,9 @@
                     window.menuData[docId].rating = newRating;
                     window.menuData[docId].num_resenas = newReviews;
                     localStorage.setItem(userRatingKey, "true"); // Bloquear nuevo voto
+
+                    // Recalcular el cuadro global de inmediato
+                    window.calcularYMostrarCalificacionGlobal();
                     
                     window.actualizarEstrellasUI(newRating, newReviews);
                     Swal.fire('¡Calificado!', 'Tus estrellas han sido registradas.', 'success');
