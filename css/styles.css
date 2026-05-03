@@ -765,7 +765,7 @@ details[open] .details-content {
         width: 100%; 
         margin-top: 10px;
     }
-    
+
     /* Ajuste de la estructura superior en móvil */
     .top-wrapper {
         display: flex;
@@ -983,5 +983,49 @@ details[open] .details-content {
         background: rgba(214, 47, 47, 0.9) !important; /* Rojo ligeramente translúcido */
         border: 1px solid rgba(255, 255, 255, 0.5) !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
+    }
+}
+
+/* =======================================
+   NAVEGACIÓN RÁPIDA (TOOLBAR CENTRO)
+   ======================================= */
+.nav-link-btn {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+}
+
+.nav-link-btn:hover {
+    color: white;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
+}
+
+/* Animación del Punto Online */
+.pulsing-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #66eab7;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px #66eab7;
+    animation: pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(102, 234, 183, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(102, 234, 183, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(102, 234, 183, 0); }
+}
+
+/* Ocultar en Tablets y Móviles (Menos de 900px) */
+@media(max-width: 900px) {
+    .desktop-only {
+        display: none !important;
     }
 }
