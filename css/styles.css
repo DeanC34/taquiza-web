@@ -1072,5 +1072,5 @@ details[open] .details-content {
    CORRECCIÓN DE CAPAS (SWEETALERT SIEMPRE ARRIBA)
    ======================================= */
 .swal2-container {
-    z-index: 5000 !important;
+    z-index: 9000 !important;
 }
