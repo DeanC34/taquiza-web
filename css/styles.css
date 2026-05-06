@@ -1067,3 +1067,10 @@ details[open] .details-content {
     font-weight: bold;
     color: #267d46;
 }
+
+/* =======================================
+   CORRECCIÓN DE CAPAS (SWEETALERT SIEMPRE ARRIBA)
+   ======================================= */
+.swal2-container {
+    z-index: 5000 !important;
+}
