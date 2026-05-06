@@ -463,21 +463,44 @@
             }
         };
 
-        // --- FUNCIÓN PARA CALIFICAR (FIREBASE) ---
+        // --- FUNCIÓN PARA CALIFICAR O ACTUALIZAR RESEÑA ---
         window.calificarProducto = async (estrellas) => {
             const email = localStorage.getItem("customerEmail");
+            const nombreUsuario = localStorage.getItem("customerName") || "Cliente Anónimo";
+
             if (!email) {
                 Swal.fire('¡Inicia Sesión!', 'Debes acceder con tu cuenta para calificar los platillos.', 'info');
                 return;
             }
 
             const docId = window.productoActualId;
-            const userRatingKey = `rated_${docId}_${email}`; // Clave para evitar doble voto localmente
+            const userRatingKey = `rated_${docId}_${email}`;
+            
+            // Verificamos si el usuario ya había votado antes
+            const votoAnterior = localStorage.getItem(userRatingKey);
+            const esActualizacion = votoAnterior !== null;
 
-            if(localStorage.getItem(userRatingKey)) {
-                Swal.fire('¡Gracias!', 'Ya has calificado este platillo anteriormente.', 'warning');
-                return;
-            }
+            // Pedir el comentario (Límite 75 palabras)
+            const { value: comentarioText, isDismissed } = await Swal.fire({
+                title: esActualizacion ? `Actualizando a ${estrellas} estrellas ⭐` : `Calificaste con ${estrellas} estrellas ⭐`,
+                input: 'textarea',
+                inputLabel: 'Añade un breve comentario (Opcional, máx 75 palabras)',
+                inputPlaceholder: '¡Estaban deliciosos, muy recomendados!...',
+                showCancelButton: true,
+                confirmButtonText: esActualizacion ? 'Actualizar Reseña' : 'Publicar Reseña',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#267d46',
+                inputValidator: (value) => {
+                    if (value) {
+                        const wordCount = value.trim().split(/\s+/).filter(word => word.length > 0).length;
+                        if (wordCount > 75) {
+                            return `Tu comentario tiene ${wordCount} palabras. Por favor resúmelo a 75 palabras máximo.`;
+                        }
+                    }
+                }
+            });
+
+            if (isDismissed) return;
 
             try {
                 const productoRef = doc(db, "menu_items", docId);
@@ -487,32 +510,89 @@
                     const data = productoSnap.data();
                     let currentRating = data.rating || 0;
                     let currentReviews = data.num_resenas || 0;
+                    let comentariosActuales = data.comentarios || [];
 
-                    // Matemáticas para el nuevo promedio de estrellas
-                    let newReviews = currentReviews + 1;
-                    let newRating = ((currentRating * currentReviews) + estrellas) / newReviews;
+                    let newReviews = currentReviews;
+                    let newRating = 0;
 
+                    if (esActualizacion) {
+                        // MATEMÁTICA DE ACTUALIZACIÓN: Restamos el voto viejo y sumamos el nuevo
+                        let oldEstrellas = parseFloat(votoAnterior);
+                        let totalPuntos = (currentRating * currentReviews) - oldEstrellas + estrellas;
+                        newRating = totalPuntos / newReviews;
+                        
+                        // Eliminamos el comentario viejo de este usuario
+                        comentariosActuales = comentariosActuales.filter(c => c.email !== email);
+                    } else {
+                        // MATEMÁTICA NUEVA: Sumamos una reseña extra
+                        newReviews = currentReviews + 1;
+                        let totalPuntos = (currentRating * currentReviews) + estrellas;
+                        newRating = totalPuntos / newReviews;
+                    }
+
+                    // Preparamos el nuevo comentario (guardamos el email oculto para identificarlo)
+                    if (comentarioText) {
+                        comentariosActuales.push({
+                            email: email, 
+                            usuario: nombreUsuario.split(" ")[0],
+                            texto: comentarioText.trim(),
+                            fecha: new Date().toLocaleDateString("es-MX")
+                        });
+                    }
+
+                    // Guardamos en Firebase
                     await updateDoc(productoRef, {
                         rating: newRating,
-                        num_resenas: newReviews
+                        num_resenas: newReviews,
+                        comentarios: comentariosActuales
                     });
 
-                    // Actualizar datos temporalmente en pantalla
+                    // Actualizamos memoria temporal y LocalStorage
                     window.menuData[docId].rating = newRating;
                     window.menuData[docId].num_resenas = newReviews;
-                    localStorage.setItem(userRatingKey, "true"); // Bloquear nuevo voto
-
-                    // Recalcular el cuadro global de inmediato
-                    window.calcularYMostrarCalificacionGlobal();
+                    window.menuData[docId].comentarios = comentariosActuales;
+                    localStorage.setItem(userRatingKey, estrellas.toString()); 
                     
+                    // Refrescamos la pantalla
                     window.actualizarEstrellasUI(newRating, newReviews);
-                    Swal.fire('¡Calificado!', 'Tus estrellas han sido registradas.', 'success');
+                    window.actualizarComentariosUI(comentariosActuales);
+                    if (typeof window.calcularYMostrarCalificacionGlobal === "function") {
+                        window.calcularYMostrarCalificacionGlobal();
+                    }
+
+                    Swal.fire(esActualizacion ? '¡Actualizado!' : '¡Publicado!', 'Tu reseña ha sido guardada exitosamente.', 'success');
                 }
             } catch (error) {
                 console.error("Error al calificar:", error);
                 Swal.fire('Error', 'No pudimos registrar tu calificación.', 'error');
             }
         };
+
+        // --- FUNCIÓN PARA MOSTRAR LOS COMENTARIOS EN PANTALLA ---
+        window.actualizarComentariosUI = function(comentariosArray) {
+            const listContainer = document.getElementById('qvCommentsList');
+            if (!comentariosArray || comentariosArray.length === 0) {
+                listContainer.innerHTML = '<div class="qv-comment-item" style="color: #999; font-style: italic;">Aún no hay comentarios. ¡Sé el primero en opinar!</div>';
+                return;
+            }
+
+            let html = '';
+            // Invertimos el orden para ver los más recientes primero
+            const recientes = [...comentariosArray].reverse();
+            
+            recientes.forEach(com => {
+                html += `
+                    <div class="qv-comment-item">
+                        <span class="qv-comment-user">${com.usuario}</span> <span style="font-size:0.75em; color:#aaa;">(${com.fecha})</span><br>
+                        "${com.texto}"
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        };
+
+
+
 
     </script>
     
@@ -536,6 +616,14 @@
                     <span id="qvStars"></span> <span id="qvReviewsCount">(0 Reseñas)</span>
                 </div>
                 
+                <!-- Contenedor de Comentarios -->
+                <div class="qv-comments-section" id="qvCommentsContainer">
+                    <h4 style="font-size: 0.9em; margin-bottom: 5px; color: #333;">💬 Lo que dicen los clientes:</h4>
+                    <div id="qvCommentsList" class="qv-comments-list">
+                        <!-- Los comentarios se inyectarán aquí -->
+                    </div>
+                </div>
+
                 <p id="qvProductPrice" class="qv-price">$0</p>
                 
                 <p class="qv-description" id="qvProductDescription">
@@ -714,40 +802,35 @@
             }, 600); // Esto coincide con la duración de la transición (0.6s)
         };
 
-        // --- FUNCIONES DEL MODAL VISTA RÁPIDA ---
+        // --- FUNCIÓN ABRIR VISTA RÁPIDA (CON COMENTARIOS) ---
         window.abrirVistaRapida = function(docId) {
             const producto = window.menuData[docId];
             if(!producto) return;
 
-            window.productoActualId = docId; // Guardar ID para cuando el usuario califique
+            window.productoActualId = docId;
 
-            // 1. Textos y Base
             document.getElementById('qvProductName').textContent = producto.nombre || 'Sin nombre';
             document.getElementById('qvProductCategory').textContent = producto.categoria || '';
             document.getElementById('qvProductPrice').textContent = '$' + (producto.precio || 0);
             document.getElementById('qvMainImage').src = producto.imagen_url;
-            
-            // Si la BD no tiene descripción, pone un texto por defecto
             document.getElementById('qvProductDescription').innerHTML = producto.descripcion || '<i>Delicioso platillo de La Rana. (Añade una descripción en el panel de administrador).</i>';
 
-            // 2. Renderizar Estrellas Promedio
             actualizarEstrellasUI(producto.rating || 0, producto.num_resenas || 0);
+            
+            // Cargamos los comentarios al abrir la ventana
+            actualizarComentariosUI(producto.comentarios);
 
-            // 3. Renderizar Galería (Imágenes Extras + Principal)
             let thumbsHTML = `<img src="${producto.imagen_url}" class="qv-thumb active" onclick="cambiarImagenPrincipal(this, '${producto.imagen_url}')">`;
             
             if (producto.imagenes_extra && producto.imagenes_extra.length > 0) {
-                // Si hay imágenes en la BD, las mostramos
                 producto.imagenes_extra.forEach(img => {
                     thumbsHTML += `<img src="${img}" class="qv-thumb" onclick="cambiarImagenPrincipal(this, '${img}')">`;
                 });
             } else {
-                // Si no hay extra, muestra el cuadro de "Próximamente"
                 thumbsHTML += `<div class="qv-thumb" style="background:#eee; display:flex; align-items:center; justify-content:center; font-size:0.7em; color:#999; text-align:center; cursor:default;">Próximamente</div>`;
             }
             document.getElementById('qvThumbnails').innerHTML = thumbsHTML;
 
-            // 4. Configurar botón de carrito
             const btnAgregar = document.getElementById('qvAddBtn');
             btnAgregar.onclick = function(e) {
                 animarAlCarrito(e);

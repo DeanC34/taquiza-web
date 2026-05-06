@@ -1029,3 +1029,41 @@ details[open] .details-content {
         display: none !important;
     }
 }
+
+/* =======================================
+   ESTILOS PARA COMENTARIOS (VISTA RÁPIDA)
+   ======================================= */
+.qv-comments-section {
+    margin-bottom: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+}
+
+.qv-comments-list {
+    max-height: 110px; 
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 5px;
+}
+
+.qv-comment-item {
+    font-size: 0.85em;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    line-height: 1.4;
+}
+
+.qv-comment-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.qv-comment-user {
+    font-weight: bold;
+    color: #267d46;
+}
