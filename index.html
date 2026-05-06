@@ -465,10 +465,10 @@
             }
         };
 
-        // --- FUNCIÓN PARA CALIFICAR O ACTUALIZAR RESEÑA ---
+        // --- FUNCIÓN PARA CALIFICAR O ACTUALIZAR RESEÑA (BLINDADA) ---
         window.calificarProducto = async (estrellas) => {
             const email = localStorage.getItem("customerEmail");
-            const nombreUsuario = localStorage.getItem("customerName") || "Cliente Anónimo";
+            const nombreUsuario = localStorage.getItem("customerName") || "Cliente";
 
             if (!email) {
                 Swal.fire('¡Inicia Sesión!', 'Debes acceder con tu cuenta para calificar los platillos.', 'info');
@@ -478,11 +478,9 @@
             const docId = window.productoActualId;
             const userRatingKey = `rated_${docId}_${email}`;
             
-            // Verificamos si el usuario ya había votado antes
             const votoAnterior = localStorage.getItem(userRatingKey);
             const esActualizacion = votoAnterior !== null;
 
-            // Pedir el comentario (Límite 75 palabras)
             const { value: comentarioText, isDismissed } = await Swal.fire({
                 title: esActualizacion ? `Actualizando a ${estrellas} estrellas ⭐` : `Calificaste con ${estrellas} estrellas ⭐`,
                 input: 'textarea',
@@ -494,10 +492,8 @@
                 confirmButtonColor: '#267d46',
                 inputValidator: (value) => {
                     if (value) {
-                        const wordCount = value.trim().split(/\s+/).filter(word => word.length > 0).length;
-                        if (wordCount > 75) {
-                            return `Tu comentario tiene ${wordCount} palabras. Por favor resúmelo a 75 palabras máximo.`;
-                        }
+                        const wordCount = value.trim().split(/\s+/).filter(w => w.length > 0).length;
+                        if (wordCount > 75) return `Tu comentario tiene ${wordCount} palabras. Por favor resúmelo a 75 máximo.`;
                     }
                 }
             });
@@ -510,29 +506,38 @@
 
                 if (productoSnap.exists()) {
                     const data = productoSnap.data();
-                    let currentRating = data.rating || 0;
-                    let currentReviews = data.num_resenas || 0;
-                    let comentariosActuales = data.comentarios || [];
+                    let currentRating = parseFloat(data.rating) || 0;
+                    let currentReviews = parseInt(data.num_resenas) || 0;
+                    // Protegemos que comentarios sea siempre un Arreglo (Array)
+                    let comentariosActuales = Array.isArray(data.comentarios) ? data.comentarios : [];
 
                     let newReviews = currentReviews;
                     let newRating = 0;
 
                     if (esActualizacion) {
-                        // MATEMÁTICA DE ACTUALIZACIÓN: Restamos el voto viejo y sumamos el nuevo
+                        // SOLUCIÓN AL ERROR: Si el voto anterior era "true" (código viejo), asumimos el actual para no romper la matemática
                         let oldEstrellas = parseFloat(votoAnterior);
+                        if (isNaN(oldEstrellas)) {
+                            oldEstrellas = currentRating > 0 ? currentRating : estrellas;
+                        }
+
+                        if (newReviews < 1) newReviews = 1; // Evitar divisiones por cero
+
                         let totalPuntos = (currentRating * currentReviews) - oldEstrellas + estrellas;
                         newRating = totalPuntos / newReviews;
                         
-                        // Eliminamos el comentario viejo de este usuario
+                        // Eliminar comentario viejo de este usuario
                         comentariosActuales = comentariosActuales.filter(c => c.email !== email);
                     } else {
-                        // MATEMÁTICA NUEVA: Sumamos una reseña extra
                         newReviews = currentReviews + 1;
                         let totalPuntos = (currentRating * currentReviews) + estrellas;
                         newRating = totalPuntos / newReviews;
                     }
 
-                    // Preparamos el nuevo comentario (guardamos el email oculto para identificarlo)
+                    // LÍMITES ESTRICTOS: Forzar a que el rating siempre esté entre 0 y 5
+                    if (newRating < 0) newRating = 0;
+                    if (newRating > 5) newRating = 5;
+
                     if (comentarioText) {
                         comentariosActuales.push({
                             email: email, 
@@ -542,22 +547,25 @@
                         });
                     }
 
-                    // Guardamos en Firebase
+                    // Guardamos en Firebase, redondeando a 1 decimal (ej. 4.5)
+                    let finalRating = parseFloat(newRating.toFixed(1));
+
                     await updateDoc(productoRef, {
-                        rating: newRating,
+                        rating: finalRating,
                         num_resenas: newReviews,
                         comentarios: comentariosActuales
                     });
 
-                    // Actualizamos memoria temporal y LocalStorage
-                    window.menuData[docId].rating = newRating;
+                    window.menuData[docId].rating = finalRating;
                     window.menuData[docId].num_resenas = newReviews;
                     window.menuData[docId].comentarios = comentariosActuales;
+                    
+                    // Guardar el número exacto en LocalStorage, NO "true"
                     localStorage.setItem(userRatingKey, estrellas.toString()); 
                     
-                    // Refrescamos la pantalla
-                    window.actualizarEstrellasUI(newRating, newReviews);
+                    window.actualizarEstrellasUI(finalRating, newReviews);
                     window.actualizarComentariosUI(comentariosActuales);
+                    
                     if (typeof window.calcularYMostrarCalificacionGlobal === "function") {
                         window.calcularYMostrarCalificacionGlobal();
                     }
@@ -763,7 +771,7 @@
         body .swal2-container {
             z-index: 10000 !important; 
         }
-        
+
     </style>
 
         <script>
