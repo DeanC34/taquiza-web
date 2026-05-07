@@ -8,7 +8,7 @@
     <!-- Favicon de Rana -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐸</text></svg>">
     
-    <link rel="stylesheet" href="css/styles.css?v=2">
+    <link rel="stylesheet" href="css/styles.css?v=3">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -694,14 +694,14 @@
                     <h4 style="font-size: 0.9em; margin-bottom: 5px; color: #333; text-align: center;">💬 Lo que dicen los clientes:</h4>
                     
                     <div class="carousel-wrapper">
-                        <button class="carousel-btn prev-btn" onclick="prevComment()">&#10094;</button>
+                        <button class="carousel-btn prev-btn" onclick="prevComment()">&lt;</button>
                         
                         <div class="carousel-track-container">
                             <div id="qvCommentsList" class="carousel-track">
                                 </div>
                         </div>
                         
-                        <button class="carousel-btn next-btn" onclick="nextComment()">&#10095;</button>
+                        <button class="carousel-btn next-btn" onclick="nextComment()">&gt;</button>
                     </div>
                     
                     <div id="carouselIndicators" class="carousel-indicators"></div>
@@ -936,7 +936,7 @@
                 clearInterval(window.commentInterval);
             }
         };
-        
+
         window.cambiarImagenPrincipal = function(elemento, src) {
             document.getElementById('qvMainImage').src = src;
             const thumbs = document.querySelectorAll('.qv-thumb');
