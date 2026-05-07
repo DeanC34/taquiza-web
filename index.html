@@ -578,29 +578,93 @@
             }
         };
 
-        // --- FUNCIÓN PARA MOSTRAR LOS COMENTARIOS EN PANTALLA ---
+        // --- LÓGICA DEL CARRUSEL DE COMENTARIOS ---
+        window.currentCommentIndex = 0;
+        window.commentInterval = null;
+        window.totalComments = 0;
+
         window.actualizarComentariosUI = function(comentariosArray) {
-            const listContainer = document.getElementById('qvCommentsList');
+            const track = document.getElementById('qvCommentsList');
+            const indicators = document.getElementById('carouselIndicators');
+            
+            // 1. Limpiar el temporizador si ya había uno corriendo
+            if (window.commentInterval) clearInterval(window.commentInterval);
+            window.currentCommentIndex = 0;
+
+            // 2. Si no hay comentarios
             if (!comentariosArray || comentariosArray.length === 0) {
-                listContainer.innerHTML = '<div class="qv-comment-item" style="color: #999; font-style: italic;">Aún no hay comentarios. ¡Sé el primero en opinar!</div>';
+                track.innerHTML = '<div class="qv-comment-slide" style="color: #999; font-style: italic;">Aún no hay comentarios. ¡Sé el primero en opinar!</div>';
+                indicators.innerHTML = '';
+                window.totalComments = 0;
+                track.style.transform = 'translateX(0)';
                 return;
             }
 
+            // 3. Dibujar las "diapositivas" y los puntitos
             let html = '';
-            // Invertimos el orden para ver los más recientes primero
-            const recientes = [...comentariosArray].reverse();
+            let dotsHtml = '';
+            const recientes = [...comentariosArray].reverse(); // Los más nuevos primero
+            window.totalComments = recientes.length;
             
-            recientes.forEach(com => {
+            recientes.forEach((com, index) => {
                 html += `
-                    <div class="qv-comment-item">
-                        <span class="qv-comment-user">${com.usuario}</span> <span style="font-size:0.75em; color:#aaa;">(${com.fecha})</span><br>
+                    <div class="qv-comment-slide">
+                        <span class="qv-comment-user">${com.usuario} <span style="font-size:0.8em; color:#aaa; font-weight:normal;">(${com.fecha})</span></span>
                         "${com.texto}"
                     </div>
                 `;
+                dotsHtml += `<div class="indicator-dot ${index === 0 ? 'active' : ''}"></div>`;
             });
-            listContainer.innerHTML = html;
+
+            track.innerHTML = html;
+            indicators.innerHTML = dotsHtml;
+            track.style.transform = 'translateX(0)';
+
+            // 4. Iniciar el auto-scroll (cada 5 segundos) solo si hay más de 1 comentario
+            if (window.totalComments > 1) {
+                window.commentInterval = setInterval(window.nextComment, 5000);
+            }
         };
 
+        // Función para mover el carrusel visualmente
+        window.updateCarouselView = function() {
+            const track = document.getElementById('qvCommentsList');
+            const dots = document.querySelectorAll('.indicator-dot');
+            
+            if(!track || window.totalComments === 0) return;
+
+            // Mueve la pista hacia la izquierda dependiendo del índice
+            track.style.transform = `translateX(-${window.currentCommentIndex * 100}%)`;
+            
+            // Actualiza el puntito activo
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === window.currentCommentIndex);
+            });
+        };
+
+        // Función para el botón derecho
+        window.nextComment = function() {
+            if (window.totalComments <= 1) return;
+            window.currentCommentIndex = (window.currentCommentIndex + 1) % window.totalComments;
+            window.updateCarouselView();
+            window.resetCommentTimer(); // Reinicia el tiempo al hacer clic manual
+        };
+
+        // Función para el botón izquierdo
+        window.prevComment = function() {
+            if (window.totalComments <= 1) return;
+            window.currentCommentIndex = (window.currentCommentIndex - 1 + window.totalComments) % window.totalComments;
+            window.updateCarouselView();
+            window.resetCommentTimer();
+        };
+
+        // Reinicia los 5 segundos de espera al usar los botones manuales
+        window.resetCommentTimer = function() {
+            if (window.commentInterval) clearInterval(window.commentInterval);
+            if (window.totalComments > 1) {
+                window.commentInterval = setInterval(window.nextComment, 5000);
+            }
+        };
 
 
 
@@ -626,12 +690,21 @@
                     <span id="qvStars"></span> <span id="qvReviewsCount">(0 Reseñas)</span>
                 </div>
                 
-                <!-- Contenedor de Comentarios -->
                 <div class="qv-comments-section" id="qvCommentsContainer">
-                    <h4 style="font-size: 0.9em; margin-bottom: 5px; color: #333;">💬 Lo que dicen los clientes:</h4>
-                    <div id="qvCommentsList" class="qv-comments-list">
-                        <!-- Los comentarios se inyectarán aquí -->
+                    <h4 style="font-size: 0.9em; margin-bottom: 5px; color: #333; text-align: center;">💬 Lo que dicen los clientes:</h4>
+                    
+                    <div class="carousel-wrapper">
+                        <button class="carousel-btn prev-btn" onclick="prevComment()">&#10094;</button>
+                        
+                        <div class="carousel-track-container">
+                            <div id="qvCommentsList" class="carousel-track">
+                                </div>
+                        </div>
+                        
+                        <button class="carousel-btn next-btn" onclick="nextComment()">&#10095;</button>
                     </div>
+                    
+                    <div id="carouselIndicators" class="carousel-indicators"></div>
                 </div>
 
                 <p id="qvProductPrice" class="qv-price">$0</p>
@@ -857,8 +930,13 @@
 
         window.cerrarVistaRapida = function() {
             document.getElementById('quickViewModal').classList.remove('active');
+            
+            // Detener el auto-scroll del carrusel para ahorrar memoria
+            if (window.commentInterval) {
+                clearInterval(window.commentInterval);
+            }
         };
-
+        
         window.cambiarImagenPrincipal = function(elemento, src) {
             document.getElementById('qvMainImage').src = src;
             const thumbs = document.querySelectorAll('.qv-thumb');
